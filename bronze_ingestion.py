@@ -1,0 +1,149 @@
+import os
+import hashlib
+import boto3
+from botocore.exceptions import ClientError
+from datetime import datetime, timezone
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# MinIO Configuration
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT_URL", "http://localhost:9000")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+BRONZE_BUCKET = "bronze"
+
+def get_md5(file_path):
+    """
+    Calculates the MD5 checksum of a local file in chunks to support large files.
+    
+    Args:
+        file_path (str): The absolute or relative path to the local file.
+        
+    Returns:
+        str: The hexadecimal MD5 checksum string.
+    """
+    hash_md5 = hashlib.md5()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
+
+def get_s3_client():
+    """
+    Initializes and returns a boto3 S3 client configured for the MinIO Data Lake.
+    
+    Returns:
+        boto3.client: Configured S3 client instance.
+    """
+    return boto3.client(
+        's3',
+        endpoint_url=MINIO_ENDPOINT,
+        aws_access_key_id=MINIO_ACCESS_KEY,
+        aws_secret_access_key=MINIO_SECRET_KEY,
+        region_name='us-east-1' # Default for MinIO
+    )
+
+def ensure_bucket_exists(s3_client, bucket_name):
+    """
+    Verifies the existence of an S3 bucket and creates it if it does not exist.
+    
+    Args:
+        s3_client (boto3.client): The active S3 client instance.
+        bucket_name (str): The target bucket name to verify or create.
+    """
+    try:
+        s3_client.head_bucket(Bucket=bucket_name)
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        if error_code == '404':
+            print(f"[INFO] Creating bucket: {bucket_name}")
+            s3_client.create_bucket(Bucket=bucket_name)
+        else:
+            raise
+
+def upload_to_bronze(s3_client, file_path, object_name):
+    """
+    Uploads a file to the Bronze layer with idempotency checks and custom metadata.
+    
+    This function compares the local file's MD5 hash against the S3 object's E-Tag.
+    If the hashes match, the upload is skipped to save bandwidth and compute resources.
+    
+    Args:
+        s3_client (boto3.client): The active S3 client instance.
+        file_path (str): Path to the local file.
+        object_name (str): The destination object key in S3.
+    """
+    local_md5 = get_md5(file_path)
+    
+    # Check if object exists and compare e-Tag
+    try:
+        response = s3_client.head_object(Bucket=BRONZE_BUCKET, Key=object_name)
+        s3_etag = response['ETag'].strip('"')
+        
+        if s3_etag == local_md5:
+            print(f"[SKIP] [{object_name}] File has not changed (MD5 matches E-Tag: {local_md5})")
+            return
+        else:
+            print(f"[UPDATE] [{object_name}] File changed. Local MD5: {local_md5}, S3 E-Tag: {s3_etag}")
+            
+    except ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            print(f"[NEW] [{object_name}] File not found in MinIO. Uploading...")
+        else:
+            raise
+
+    # Upload with Custom Metadata
+    metadata = {
+        'ingestion_timestamp': datetime.now(timezone.utc).isoformat(),
+        'source_system': 'local_file_system',
+        'operator_id': 'data_engineer_fp',
+        'original_md5': local_md5
+    }
+    
+    print(f"[INFO] [{object_name}] Uploading to {BRONZE_BUCKET}...")
+    s3_client.upload_file(
+        file_path, 
+        BRONZE_BUCKET, 
+        object_name,
+        ExtraArgs={'Metadata': metadata}
+    )
+    print(f"[SUCCESS] [{object_name}] Uploaded with metadata: {metadata}")
+
+import glob
+
+def main():
+    """
+    Main execution pipeline for the Bronze Ingestion layer.
+    
+    Scans the designated raw data directory and processes all supported files
+    into the Data Lakehouse, ensuring idempotency and capturing metadata.
+    """
+    raw_data_dir = os.path.join("data")
+    if not os.path.exists(raw_data_dir):
+        os.makedirs(raw_data_dir)
+        print(f"[INFO] Created directory {raw_data_dir}. Place raw data files here.")
+    
+    # Identify all supported flat files in the raw dropzone
+    files_to_ingest = []
+    for ext in ["*.csv", "*.xlsx", "*.json"]:
+        files_to_ingest.extend(glob.glob(os.path.join(raw_data_dir, ext)))
+        
+    s3_client = get_s3_client()
+    ensure_bucket_exists(s3_client, BRONZE_BUCKET)
+    
+    print(f"[INFO] Starting Advanced Ingestion to Bronze Layer from {raw_data_dir}...")
+    if not files_to_ingest:
+        print(f"[WARNING] No data files found in {raw_data_dir}. Skipping ingestion.")
+        return
+
+    for file_path in files_to_ingest:
+        file_name = os.path.basename(file_path)
+        upload_to_bronze(s3_client, file_path, file_name)
+            
+    print("[SUCCESS] Ingestion Process Completed.")
+
+if __name__ == "__main__":
+    main()

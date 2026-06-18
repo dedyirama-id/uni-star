@@ -4,3 +4,4 @@ pandas
 deltalake
 openpyxl
 pyarrow
+python-dotenv

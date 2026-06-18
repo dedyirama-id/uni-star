@@ -1,24 +1,39 @@
 import duckdb
 import sys
 import io
+import os
+from dotenv import load_dotenv
 
-# Fix for printing DuckDB execution plan tree characters in Windows
+load_dotenv()
+
+MINIO_ENDPOINT_HOST = os.getenv("MINIO_ENDPOINT_HOST", "localhost:9000")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+
 if sys.stdout.encoding.lower() != 'utf-8':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 def run_analytics():
-    print("Connecting to DuckDB S3 Gold Layer...")
+    """
+    Executes analytical queries against the Gold layer Star Schema using DuckDB.
+    
+    This function demonstrates:
+    1. Business intelligence querying capabilities.
+    2. DuckDB's query optimization features, specifically Filter Pushdown,
+       by outputting the physical execution plan.
+    """
+    print("[INFO] Connecting to DuckDB S3 Gold Layer...")
     con = duckdb.connect()
     con.execute(f"INSTALL httpfs;")
     con.execute(f"LOAD httpfs;")
-    con.execute(f"SET s3_endpoint='localhost:9000';")
-    con.execute(f"SET s3_access_key_id='minioadmin';")
-    con.execute(f"SET s3_secret_access_key='minioadmin';")
+    con.execute(f"SET s3_endpoint='{MINIO_ENDPOINT_HOST}';")
+    con.execute(f"SET s3_access_key_id='{MINIO_ACCESS_KEY}';")
+    con.execute(f"SET s3_secret_access_key='{MINIO_SECRET_KEY}';")
     con.execute(f"SET s3_use_ssl=false;")
     con.execute(f"SET s3_region='us-east-1';")
     con.execute(f"SET s3_url_style='path';")
 
-    print("\n--- QUERY 1: Rata-rata Umur Perusahaan (Grit) berdasarkan Latar Belakang Founder ---")
+    print("\n--- Rata-rata Umur Perusahaan (Grit) berdasarkan Latar Belakang Founder ---")
     query1 = """
         SELECT 
             e.tier_flag,
@@ -33,7 +48,7 @@ def run_analytics():
     """
     print(con.execute(query1).df())
 
-    print("\n--- QUERY 2: Total Valuasi (USD) Industri AI oleh Founder Non-Top Tier ---")
+    print("\n--- Total Valuasi (USD) Industri AI oleh Founder Non-Top Tier ---")
     query2 = """
         SELECT 
             c.industry,
@@ -47,11 +62,11 @@ def run_analytics():
     """
     print(con.execute(query2).df())
     
-    print("\n--- BONUS: Query Explanation Analysis (Filter Pushdown) ---")
+    print("\n--- Query Explanation Analysis (Filter Pushdown) ---")
     explain_query = "EXPLAIN ANALYZE " + query2
     explain_result = con.execute(explain_query).fetchall()
     
-    with open("explain_analyze_output.txt", "w", encoding="utf-8") as f:
+    with open(".temp/explain_analyze_output.txt", "w", encoding="utf-8") as f:
         for row in explain_result:
             plan_str = str(row[1])
             print(plan_str)

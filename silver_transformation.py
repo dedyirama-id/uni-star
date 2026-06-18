@@ -1,28 +1,52 @@
 import pandas as pd
 import boto3
 
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+
+# MinIO Configuration
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT_URL", "http://localhost:9000")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+BRONZE_BUCKET = "bronze"
+SILVER_BUCKET = "silver"
 
 # S3 Storage Options for Pandas
 PANDAS_STORAGE_OPTIONS = {
-    "key": "minioadmin",
-    "secret": "minioadmin",
-    "client_kwargs": {"endpoint_url": "http://localhost:9000"}
+    "key": MINIO_ACCESS_KEY,
+    "secret": MINIO_SECRET_KEY,
+    "client_kwargs": {"endpoint_url": MINIO_ENDPOINT}
 }
 
 BRONZE_BUCKET = "bronze"
 SILVER_BUCKET = "silver"
 
 def get_s3_client():
+    """
+    Initializes and returns a boto3 S3 client configured for the MinIO Data Lake.
+    """
     return boto3.client(
         's3',
-        endpoint_url=PANDAS_STORAGE_OPTIONS["client_kwargs"]["endpoint_url"],
-        aws_access_key_id=PANDAS_STORAGE_OPTIONS["key"],
-        aws_secret_access_key=PANDAS_STORAGE_OPTIONS["secret"],
-        region_name="us-east-1"
+        endpoint_url=MINIO_ENDPOINT,
+        aws_access_key_id=MINIO_ACCESS_KEY,
+        aws_secret_access_key=MINIO_SECRET_KEY,
+        region_name='us-east-1' # Default for MinIO
     )
 
 def calculate_s3_folder_size(client, bucket, prefix):
+    """
+    Calculates the total storage size of an S3 folder (prefix) in bytes.
+    
+    Args:
+        client (boto3.client): The active S3 client instance.
+        bucket (str): The target bucket name.
+        prefix (str): The folder prefix to calculate size for.
+        
+    Returns:
+        int: Total size in bytes.
+    """
     total_size = 0
     paginator = client.get_paginator('list_objects_v2')
     for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
@@ -32,7 +56,14 @@ def calculate_s3_folder_size(client, bucket, prefix):
     return total_size
 
 def process_silver():
-    print("Reading data from Bronze Layer...")
+    """
+    Executes the Silver layer transformation pipeline.
+    
+    This pipeline extracts raw datasets from the Bronze layer, standardizes them,
+    integrates Startups, Executives, and QS Rankings into a unified schema, 
+    applies tier categorization logic, and writes the output as optimized Parquet files.
+    """
+    print("[INFO] Reading data from Bronze Layer...")
     
     # Read Kaggle CSV
     df_kaggle = pd.read_csv(
@@ -52,7 +83,7 @@ def process_silver():
         storage_options=PANDAS_STORAGE_OPTIONS
     )
 
-    print("Data Cleaning & Transformation...")
+    print("[INFO] Data Cleaning & Transformation...")
     
     # Clean Kaggle Data
     df_kaggle = df_kaggle.fillna('N/A')
@@ -62,9 +93,6 @@ def process_silver():
     df_wiki['universityLabel'] = df_wiki['universityLabel'].str.strip()
     
     # Process QS Rankings
-    # Assuming columns like 'Institution Name' and 'Rank' exist. 
-    # Let's standardize the name for joining.
-    # Note: Excel columns can be dynamic. We will look for a column that contains 'Institution' or 'Name'
     inst_col = [c for c in df_qs.columns if 'institution' in str(c).lower() or 'name' in str(c).lower()][0]
     rank_col = [c for c in df_qs.columns if 'rank' in str(c).lower()][0]
     
@@ -90,7 +118,7 @@ def process_silver():
             
     df_wiki_enriched['University_Tier_Flag'] = df_wiki_enriched['QS_Rank_Num'].apply(flag_tier)
     
-    print("Writing Cleansed Data to Silver Layer (Delta Format)...")
+    print("[INFO] Writing Cleansed Data to Silver Layer (Delta Format)...")
     s3_client = get_s3_client()
     try:
         s3_client.create_bucket(Bucket=SILVER_BUCKET)
@@ -126,10 +154,10 @@ def process_silver():
     silver_wiki = calculate_s3_folder_size(s3, SILVER_BUCKET, 'executive_profiles/')
     total_silver = silver_kaggle + silver_wiki
     
-    print(f"Bronze Layer (Raw CSV/Excel): {total_bronze / 1024:.2f} KB")
-    print(f"Silver Layer (Compressed Delta/Parquet): {total_silver / 1024:.2f} KB")
-    print(f"Storage Reduction: {((total_bronze - total_silver) / total_bronze) * 100:.2f}%")
-    print("Silver Transformation Process Completed.")
+    print(f"[INFO] Bronze Layer (Raw CSV/Excel): {total_bronze / 1024:.2f} KB")
+    print(f"[INFO] Silver Layer (Compressed Delta/Parquet): {total_silver / 1024:.2f} KB")
+    print(f"[INFO] Storage Reduction: {((total_bronze - total_silver) / total_bronze) * 100:.2f}%")
+    print("[SUCCESS] Silver Transformation Process Completed.")
 
 if __name__ == "__main__":
     process_silver()

@@ -1,16 +1,28 @@
 import duckdb
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+MINIO_ENDPOINT_HOST = os.getenv("MINIO_ENDPOINT_HOST", "localhost:9000")
+MINIO_ENDPOINT_URL = os.getenv("MINIO_ENDPOINT_URL", "http://localhost:9000")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
 import boto3
 
 STORAGE_OPTIONS = {
-    "AWS_ACCESS_KEY_ID": "admin",
-    "AWS_SECRET_ACCESS_KEY": "password",
-    "AWS_ENDPOINT_URL": "http://localhost:9000",
+    "AWS_ACCESS_KEY_ID": MINIO_ACCESS_KEY,
+    "AWS_SECRET_ACCESS_KEY": MINIO_SECRET_KEY,
+    "AWS_ENDPOINT_URL": MINIO_ENDPOINT_URL,
     "AWS_REGION": "us-east-1"
 }
 
 GOLD_BUCKET = "gold"
 
 def get_s3_client():
+    """
+    Initializes and returns a boto3 S3 client configured for the MinIO Data Lake.
+    """
     return boto3.client(
         's3',
         endpoint_url=STORAGE_OPTIONS["AWS_ENDPOINT_URL"],
@@ -20,19 +32,26 @@ def get_s3_client():
     )
 
 def create_gold_layer():
-    print("Connecting to DuckDB and configuring S3 access...")
+    """
+    Executes the Gold layer aggregation and dimensional modeling pipeline.
+    
+    Leverages DuckDB as an in-process OLAP engine to transform Silver layer 
+    Parquet datasets into a Star Schema (Fact and Dimension tables). 
+    The resulting tables are written back to the Gold layer in MinIO.
+    """
+    print("[INFO] Connecting to DuckDB and configuring S3 access...")
     con = duckdb.connect()
     
     con.execute(f"INSTALL httpfs;")
     con.execute(f"LOAD httpfs;")
-    con.execute(f"SET s3_endpoint='localhost:9000';")
-    con.execute(f"SET s3_access_key_id='minioadmin';")
-    con.execute(f"SET s3_secret_access_key='minioadmin';")
+    con.execute(f"SET s3_endpoint='{MINIO_ENDPOINT_HOST}';")
+    con.execute(f"SET s3_access_key_id='{MINIO_ACCESS_KEY}';")
+    con.execute(f"SET s3_secret_access_key='{MINIO_SECRET_KEY}';")
     con.execute(f"SET s3_use_ssl=false;")
     con.execute(f"SET s3_region='us-east-1';")
     con.execute(f"SET s3_url_style='path';")
     
-    print("Reading Silver Parquet Tables...")
+    print("[INFO] Reading Silver Parquet Tables...")
     con.execute("CREATE OR REPLACE VIEW silver_startups AS SELECT * FROM read_parquet('s3://silver/unicorn_startups/*.parquet');")
     con.execute("CREATE OR REPLACE VIEW silver_executives AS SELECT * FROM read_parquet('s3://silver/executive_profiles/*.parquet');")
     
@@ -42,10 +61,10 @@ def create_gold_layer():
     except:
         pass
 
-    print("Building Star Schema (Gold Layer)...")
+    print("[INFO] Building Star Schema (Gold Layer)...")
     
     # 1. Dim Company
-    print("-> Creating dim_company")
+    print("       - Creating dim_company")
     con.execute("""
         COPY (
             SELECT DISTINCT
@@ -59,7 +78,7 @@ def create_gold_layer():
     """)
 
     # 2. Dim Executive
-    print("-> Creating dim_executive")
+    print("       - Creating dim_executive")
     con.execute("""
         COPY (
             SELECT DISTINCT
@@ -73,7 +92,7 @@ def create_gold_layer():
     """)
 
     # 3. Fact Valuation & Grit
-    print("-> Creating fact_valuation_grit")
+    print("       - Creating fact_valuation_grit")
     con.execute("""
         COPY (
             SELECT 
@@ -83,8 +102,9 @@ def create_gold_layer():
                 s.Valuation_Tier AS valuation_tier,
                 s.Year_Founded AS year_founded,
                 s.Company_Age_Years AS company_age_years,
-                -- Example Experience & Grit Index logic:
-                -- Older company reaching high valuation + Non-Top Tier founder = Higher Grit Index
+                -- Experience & Grit Index Logic:
+                -- Older companies reaching high valuations with non-traditional
+                -- founder backgrounds receive a higher Grit Index.
                 CASE 
                     WHEN e.University_Tier_Flag LIKE 'Non-Top%' THEN (s.Company_Age_Years * 1.5)
                     WHEN e.University_Tier_Flag LIKE 'Non-Formal%' THEN (s.Company_Age_Years * 2.0)
@@ -96,7 +116,7 @@ def create_gold_layer():
         ) TO 's3://gold/fact_valuation_grit.parquet' (FORMAT PARQUET, OVERWRITE_OR_IGNORE);
     """)
     
-    print("Gold Layer Star Schema created successfully in S3!")
+    print("[SUCCESS] Gold Layer Star Schema created successfully in S3!")
 
 if __name__ == "__main__":
     create_gold_layer()
