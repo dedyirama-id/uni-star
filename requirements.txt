@@ -1,0 +1,6 @@
+duckdb>=1.0.0
+boto3
+pandas
+deltalake
+openpyxl
+pyarrow

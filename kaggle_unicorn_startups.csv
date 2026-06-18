@@ -1,0 +1,145 @@
+﻿Rank,Company,Valuation_Formatted,Valuation_Tier,Industry,Country,Continent,City,Founders,Year_Founded,Company_Age_Years,Status,Data_Source,Collection_Date
+1,ByteDance,$225.0B,Hectocorn ($100B+),Artificial Intelligence,China,Asia,Beijing,Zhang Yiming,2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+2,SpaceX,$180.0B,Hectocorn ($100B+),Aerospace & Defense,United States,North America,Hawthorne,Elon Musk,2002,24,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+3,OpenAI,$157.0B,Hectocorn ($100B+),Artificial Intelligence,United States,North America,San Francisco,"Sam Altman, Elon Musk, Greg Brockman",2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+4,Shopify,$80.0B,Decacorn ($10B–$100B),E-commerce / SaaS,Canada,North America,Ottawa,Tobias Lütke,2006,20,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+5,Shein,$66.0B,Decacorn ($10B–$100B),E-commerce & Fashion,China,Asia,Guangzhou,Xu Yangtian,2008,18,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+6,Stripe,$65.0B,Decacorn ($10B–$100B),Fintech,United States,North America,San Francisco,"Patrick Collison, John Collison",2010,16,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+7,Anthropic,$61.5B,Decacorn ($10B–$100B),Artificial Intelligence,United States,North America,San Francisco,"Dario Amodei, Daniela Amodei",2021,5,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+8,Adyen,$50.0B,Decacorn ($10B–$100B),Fintech / Payments,Netherlands,Europe,Amsterdam,Pieter van der Does,2006,20,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+9,Nubank,$45.0B,Decacorn ($10B–$100B),Fintech / Neobank,Brazil,South America,São Paulo,David Vélez,2013,13,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+10,Revolut,$45.0B,Decacorn ($10B–$100B),Fintech,United Kingdom,Europe,London,"Nikolay Storonsky, Vlad Yatsenko",2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+11,Databricks,$43.0B,Decacorn ($10B–$100B),Data & Analytics / AI,United States,North America,San Francisco,"Ali Ghodsi, Matei Zaharia",2013,13,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+12,Checkout.com,$40.0B,Decacorn ($10B–$100B),Fintech / Payments,United Kingdom,Europe,London,Guillaume Pousaz,2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+13,Canva,$32.0B,Decacorn ($10B–$100B),Software / Design Tools,Australia,Oceania,Sydney,Melanie Perkins,2013,13,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+14,Epic Games,$31.5B,Decacorn ($10B–$100B),Gaming,United States,North America,Cary,Tim Sweeney,1991,35,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+15,Fanatics,$31.0B,Decacorn ($10B–$100B),Sports Commerce,United States,North America,Jacksonville,Alan Trager,1995,31,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+16,Waymo,$30.0B,Decacorn ($10B–$100B),Autonomous Vehicles,United States,North America,Mountain View,John Krafcik (Google spin-off),2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+17,Chime,$25.0B,Decacorn ($10B–$100B),Fintech / Neobank,United States,North America,San Francisco,"Chris Britt, Ryan King",2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+18,Bitmain,$24.0B,Decacorn ($10B–$100B),Cryptocurrency,China,Asia,Beijing,"Jihan Wu, Micree Zhan",2013,13,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+19,BYJU'S,$22.0B,Decacorn ($10B–$100B),Edtech,India,Asia,Bangalore,Byju Raveendran,2011,15,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+20,Manbang (Full Truck Alliance),$21.0B,Decacorn ($10B–$100B),Logistics / Freight,China,Asia,Guiyang,Zhang Hui,2017,9,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+21,Talabat,$20.0B,Decacorn ($10B–$100B),Food Delivery / Super App,UAE,Middle East,Dubai,Khalid Al Zayani,2004,22,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+22,Miro,$17.5B,Decacorn ($10B–$100B),Collaboration / Whiteboard,Netherlands,Europe,Amsterdam,Andrey Khusid,2011,15,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+23,Rapyd,$15.0B,Decacorn ($10B–$100B),Fintech / Payments,Israel,Middle East,Tel Aviv,Arik Shtilman,2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+24,Discord,$15.0B,Decacorn ($10B–$100B),Social Media / Gaming,United States,North America,San Francisco,Jason Citron,2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+25,Grab,$14.0B,Decacorn ($10B–$100B),Super App / Mobility,Singapore,Asia,Singapore,Anthony Tan,2012,14,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+26,Scale AI,$13.8B,Decacorn ($10B–$100B),Artificial Intelligence,United States,North America,San Francisco,Alexandr Wang,2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+27,Rippling,$13.5B,Decacorn ($10B–$100B),HR Tech / Workforce Management,United States,North America,San Francisco,Parker Conrad,2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+28,Plaid,$13.4B,Decacorn ($10B–$100B),Fintech,United States,North America,San Francisco,"Zach Perret, William Hockey",2013,13,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+29,Krafton,$13.0B,Decacorn ($10B–$100B),Gaming (PUBG),South Korea,Asia,Seongnam,Chang Byung-gyu,2007,19,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+30,Celonis,$13.0B,Decacorn ($10B–$100B),Enterprise Software,Germany,Europe,Munich,Bastian Nominacher,2011,15,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+31,Samsara,$13.0B,Decacorn ($10B–$100B),IoT / Fleet Management,United States,North America,San Francisco,Sanjit Biswas,2015,11,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+32,Figma,$12.5B,Decacorn ($10B–$100B),Design Software,United States,North America,San Francisco,"Dylan Field, Evan Wallace",2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+33,Faire,$12.4B,Decacorn ($10B–$100B),B2B Marketplace / Retail Tech,United States,North America,San Francisco,"Max Rhodes, Daniele Perito",2017,9,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+34,Brex,$12.3B,Decacorn ($10B–$100B),Fintech,United States,North America,San Francisco,"Henrique Dubugras, Pedro Franceschi",2017,9,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+35,Deel,$12.0B,Decacorn ($10B–$100B),HR Tech / Global Payroll,United States,North America,San Francisco,"Alex Bouaziz, Shuo Wang",2019,7,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+36,Northvolt,$12.0B,Decacorn ($10B–$100B),Battery Manufacturing / EV,Sweden,Europe,Stockholm,Peter Carlsson,2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+37,Wiz,$12.0B,Decacorn ($10B–$100B),Cybersecurity / Cloud Security,Israel,Middle East,Tel Aviv,Assaf Rappaport,2020,6,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+38,Getir,$11.8B,Decacorn ($10B–$100B),Quick Commerce / Delivery,Turkey,Middle East,Istanbul,Nazim Salur,2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+39,Airtable,$11.7B,Decacorn ($10B–$100B),No-code / SaaS,United States,North America,San Francisco,"Howie Liu, Andrew Ofstad",2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+40,Ripple,$11.3B,Decacorn ($10B–$100B),Cryptocurrency / Fintech,United States,North America,San Francisco,"Chris Larsen, Jed McCaleb",2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+41,Automation Anywhere,$11.0B,Decacorn ($10B–$100B),Robotic Process Automation,United States,North America,San Jose,Mihir Shukla,2003,23,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+42,Klarna,$11.0B,Decacorn ($10B–$100B),Fintech / Buy Now Pay Later,Sweden,Europe,Stockholm,Sebastian Siemiatkowski,2005,21,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+43,Bolt (US),$11.0B,Decacorn ($10B–$100B),Fintech / Checkout,United States,North America,San Francisco,Ryan Breslow,2014,12,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+44,Revolve Group,$10.5B,Decacorn ($10B–$100B),E-commerce / Fashion,United States,North America,Los Angeles,"Michael Mente, Mike Karanikolas",2003,23,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+45,Lalamove,$10.0B,Decacorn ($10B–$100B),Logistics / Last Mile Delivery,Hong Kong,Asia,Hong Kong,Shing Chow,2013,13,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+46,Reddit,$10.0B,Decacorn ($10B–$100B),Social Media,United States,North America,San Francisco,"Steve Huffman, Alexis Ohanian",2005,21,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+47,Instacart,$10.0B,Decacorn ($10B–$100B),Grocery Delivery,United States,North America,San Francisco,Apoorva Mehta,2012,14,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+48,Gojek,$10.0B,Decacorn ($10B–$100B),Super App / On-demand,Indonesia,Asia,Jakarta,Nadiem Makarim,2010,16,Merged,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+49,Xpeng,$9.4B,Unicorn ($1B–$10B),Electric Vehicles,China,Asia,Guangzhou,He Xiaopeng,2014,12,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+50,Navan,$9.2B,Unicorn ($1B–$10B),Travel Tech / SaaS,United States,North America,Palo Alto,"Ariel Cohen, Ilan Twig",2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+51,N26,$9.0B,Unicorn ($1B–$10B),Fintech / Neobank,Germany,Europe,Berlin,"Valentin Stalf, Maximilian Tayenthal",2013,13,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+52,Kavak,$8.7B,Unicorn ($1B–$10B),Used Cars / Mobility,Mexico,North America,Mexico City,Carlos García Ottati,2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+53,Nuro,$8.6B,Unicorn ($1B–$10B),Autonomous Vehicles,United States,North America,Mountain View,"Dave Ferguson, Jiajun Zhu",2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+54,Personio,$8.5B,Unicorn ($1B–$10B),HR Tech,Germany,Europe,Munich,Hanno Renner,2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+55,Bolt (Estonia),$8.4B,Unicorn ($1B–$10B),Mobility / Ride-hailing,Estonia,Europe,Tallinn,Markus Villig,2013,13,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+56,Sumup,$8.0B,Unicorn ($1B–$10B),Fintech / SMB Payments,United Kingdom,Europe,London,Stefan Jeschonnek,2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+57,Polestar,$8.0B,Unicorn ($1B–$10B),Electric Vehicles,Sweden,Europe,Gothenburg,Thomas Ingenlath,2017,9,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+58,Caris Life Sciences,$7.8B,Unicorn ($1B–$10B),Biotech / Genomics,United States,North America,Irving,David Halbert,1999,27,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+59,Hopin,$7.8B,Unicorn ($1B–$10B),Events / Virtual Platforms,United Kingdom,Europe,London,Johnny Boufarhat,2019,7,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+60,Messagebird,$7.5B,Unicorn ($1B–$10B),CPaaS / Communications,Netherlands,Europe,Amsterdam,Robert Vis,2011,15,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+61,Razorpay,$7.5B,Unicorn ($1B–$10B),Fintech / Payments,India,Asia,Bangalore,"Harshil Mathur, Shashank Kumar",2014,12,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+62,Toss (Viva Republica),$7.4B,Unicorn ($1B–$10B),Fintech / Super App,South Korea,Asia,Seoul,Lee Seung-gun,2013,13,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+63,Nykaa,$7.4B,Unicorn ($1B–$10B),Beauty E-commerce,India,Asia,Mumbai,Falguni Nayar,2012,14,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+64,Ola,$7.3B,Unicorn ($1B–$10B),Mobility / Ride-hailing,India,Asia,Bangalore,Bhavish Aggarwal,2010,16,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+65,Gong,$7.2B,Unicorn ($1B–$10B),Revenue Intelligence / SaaS,Israel,Middle East,San Francisco,"Amit Bendov, Eilon Reshef",2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+66,Nuvei,$7.0B,Unicorn ($1B–$10B),Fintech / Payments,Canada,North America,Montreal,Philip Fayer,2003,23,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+67,Wise,$7.0B,Unicorn ($1B–$10B),Fintech / Money Transfer,United Kingdom,Europe,London,"Taavet Hinrikus, Kristo Käärmann",2011,15,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+68,Impossible Foods,$7.0B,Unicorn ($1B–$10B),Food Tech / Plant-based,United States,North America,Redwood City,Patrick O. Brown,2011,15,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+69,1Password,$6.8B,Unicorn ($1B–$10B),Cybersecurity / Password Mgmt,Canada,North America,Toronto,"Dave Teare, Roustem Karimov",2005,21,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+70,Mollie,$6.5B,Unicorn ($1B–$10B),Fintech / Payments,Netherlands,Europe,Amsterdam,Adriaan Mol,2004,22,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+71,CRED,$6.4B,Unicorn ($1B–$10B),Fintech / Credit Cards,India,Asia,Bangalore,Kunal Shah,2018,8,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+72,Hinge Health,$6.2B,Unicorn ($1B–$10B),Digital Health,United States,North America,San Francisco,"Daniel Perez, Gabriel Mecklenburg",2014,12,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+73,Mistral AI,$6.0B,Unicorn ($1B–$10B),Artificial Intelligence / LLMs,France,Europe,Paris,Arthur Mensch,2023,3,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+74,Back Market,$5.7B,Unicorn ($1B–$10B),Refurbished Electronics / Mktpl,France,Europe,Paris,Thibaud Hug de Larauze,2014,12,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+75,PointClickCare,$5.7B,Unicorn ($1B–$10B),Health Tech / Senior Care SaaS,Canada,North America,Mississauga,Dave Hicks,2000,26,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+76,PharmEasy,$5.6B,Unicorn ($1B–$10B),Health Tech / Pharma,India,Asia,Mumbai,Dharmil Sheth,2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+77,Contentsquare,$5.6B,Unicorn ($1B–$10B),Analytics / CX Platforms,France,Europe,Paris,Jonathan Cherki,2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+78,Cohere,$5.5B,Unicorn ($1B–$10B),Artificial Intelligence / LLMs,Canada,North America,Toronto,Aidan Gomez,2019,7,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+79,Trade Republic,$5.3B,Unicorn ($1B–$10B),Fintech / Neobroker,Germany,Europe,Berlin,Christian Hecker,2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+80,Meesho,$5.1B,Unicorn ($1B–$10B),E-commerce / Social Commerce,India,Asia,Bangalore,"Vidit Aatrey, Sanjeev Barnwal",2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+81,Monzo,$5.0B,Unicorn ($1B–$10B),Fintech / Neobank,United Kingdom,Europe,London,Tom Blomfield,2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+82,Cockroach Labs,$5.0B,Unicorn ($1B–$10B),Cloud / Database SaaS,United States,North America,New York,"Spencer Kimball, Peter Mattis",2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+83,Mambu,$5.0B,Unicorn ($1B–$10B),Fintech / Banking SaaS,Germany,Europe,Berlin,Eugene Danilkis,2011,15,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+84,Alan,$4.5B,Unicorn ($1B–$10B),InsurTech / Health,France,Europe,Paris,Jean-Charles Samuelian-Werve,2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+85,Vinted,$4.5B,Unicorn ($1B–$10B),Second-hand Fashion / Marketplace,Lithuania,Europe,Vilnius,Milda Mitkute,2008,18,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+86,Hugging Face,$4.5B,Unicorn ($1B–$10B),AI / Machine Learning,United States,North America,New York,Clément Delangue,2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+87,Sorare,$4.3B,Unicorn ($1B–$10B),NFT / Fantasy Sports,France,Europe,Paris,Nicolas Julia,2018,8,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+88,Zipline,$4.2B,Unicorn ($1B–$10B),Drone Delivery / Logistics,United States,North America,South San Francisco,Keller Rinaudo,2014,12,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+89,Melio,$4.0B,Unicorn ($1B–$10B),Fintech / B2B Payments,Israel,Middle East,New York,Matan Bar,2018,8,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+90,Wealthsimple,$4.0B,Unicorn ($1B–$10B),Fintech / Wealth Management,Canada,North America,Toronto,Michael Katchen,2014,12,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+91,Skims,$4.0B,Unicorn ($1B–$10B),Fashion / DTC,United States,North America,Los Angeles,Kim Kardashian,2019,7,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+92,Infobip,$4.0B,Unicorn ($1B–$10B),Communications / CPaaS,Croatia,Europe,Zagreb,Silvio Kutić,2006,20,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+93,Papaya Global,$3.7B,Unicorn ($1B–$10B),HR Tech / Payroll,Israel,Middle East,Tel Aviv,Eynat Guez,2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+94,eToro,$3.5B,Unicorn ($1B–$10B),Fintech / Social Trading,Israel,Middle East,Tel Aviv,Yoni Assia,2007,19,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+95,Mirakl,$3.5B,Unicorn ($1B–$10B),Marketplace / E-commerce,France,Europe,Paris,"Philippe Corrot, Adrien Nussenbaum",2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+96,Highspot,$3.5B,Unicorn ($1B–$10B),Sales Enablement / SaaS,United States,North America,Seattle,Robert Wahbe,2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+97,Starburst Data,$3.4B,Unicorn ($1B–$10B),Data Analytics / Cloud,United States,North America,Boston,Justin Borgman,2017,9,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+98,Vercel,$3.2B,Unicorn ($1B–$10B),Dev Tools / Cloud,United States,North America,San Francisco,Guillermo Rauch,2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+99,Ironclad,$3.2B,Unicorn ($1B–$10B),Legal Tech / Contract Management,United States,North America,San Francisco,Jason Boehmig,2014,12,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+100,Groww,$3.0B,Unicorn ($1B–$10B),Fintech / Wealth Management,India,Asia,Bangalore,Lalit Keshre,2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+101,Remote,$3.0B,Unicorn ($1B–$10B),HR Tech / Remote Work,United States,North America,San Francisco,Job van der Voort,2019,7,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+102,Flutterwave,$3.0B,Unicorn ($1B–$10B),Fintech / Payments Africa,Nigeria,Africa,San Francisco,Olugbenga Agboola,2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+103,Wildlife Studios,$3.0B,Unicorn ($1B–$10B),Mobile Gaming,Brazil,South America,São Paulo,Victor Lazarte,2011,15,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+104,Lattice,$3.0B,Unicorn ($1B–$10B),HR Tech / People Management,United States,North America,San Francisco,Jack Altman,2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+105,OakNorth,$2.8B,Unicorn ($1B–$10B),Fintech / Lending,United Kingdom,Europe,London,"Rishi Khosla, Joel Perlman",2013,13,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+106,Dream Games,$2.8B,Unicorn ($1B–$10B),Mobile Gaming,Turkey,Middle East,Istanbul,Soner Aydemir,2019,7,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+107,WalkMe,$2.7B,Unicorn ($1B–$10B),Digital Adoption Platform,Israel,Middle East,Tel Aviv,"Dan Adika, Rafael Sweary",2011,15,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+108,Axonius,$2.6B,Unicorn ($1B–$10B),Cybersecurity / Asset Management,United States,North America,New York,Dean Sysman,2017,9,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+109,Moonshot AI,$2.5B,Unicorn ($1B–$10B),Artificial Intelligence / LLMs,China,Asia,Beijing,Yang Zhilin,2023,3,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+110,Next Insurance,$2.5B,Unicorn ($1B–$10B),InsurTech / SMB Insurance,Israel,Middle East,Palo Alto,Guy Goldstein,2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+111,Starling Bank,$2.5B,Unicorn ($1B–$10B),Fintech / Neobank,United Kingdom,Europe,London,Anne Boden,2014,12,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+112,Uala,$2.5B,Unicorn ($1B–$10B),Fintech / Neobank,Argentina,South America,Buenos Aires,Pierpaolo Barbieri,2017,9,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+113,Gympass,$2.2B,Unicorn ($1B–$10B),HR Tech / Corporate Wellness,Brazil,South America,São Paulo,Cesar Carvalho,2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+114,Chipper Cash,$2.0B,Unicorn ($1B–$10B),Fintech / Cross-border Payments,Uganda,Africa,San Francisco,Ham Serunjogi,2018,8,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+115,Zilch,$2.0B,Unicorn ($1B–$10B),Fintech / BNPL,United Kingdom,Europe,London,Philip Belamant,2018,8,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+116,Clip,$2.0B,Unicorn ($1B–$10B),Fintech / Mobile Payments,Mexico,North America,Mexico City,Adolfo Babatz,2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+117,Solugen,$2.0B,Unicorn ($1B–$10B),Green Chemistry / Biotech,United States,North America,Houston,Gaurab Chakrabarti,2017,9,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+118,Peak Games,$1.8B,Unicorn ($1B–$10B),Mobile Gaming,Turkey,Middle East,Istanbul,Sidar Şahin,2010,16,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+119,Wave Mobile Money,$1.7B,Unicorn ($1B–$10B),Fintech / Mobile Money Africa,Senegal,Africa,Dakar,Drew Durbin,2018,8,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+120,Truecaller,$1.6B,Unicorn ($1B–$10B),Communications / Caller ID,Sweden,Europe,Stockholm,Alan Mamedi,2009,17,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+121,Magic Eden,$1.6B,Unicorn ($1B–$10B),NFT / Crypto Marketplace,United States,North America,San Francisco,Jack Lu,2021,5,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+122,Neon,$1.6B,Unicorn ($1B–$10B),Fintech / Neobank,Brazil,South America,São Paulo,Pedro Conrade,2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+123,Ledger,$1.5B,Unicorn ($1B–$10B),Crypto / Hardware Security,France,Europe,Paris,Éric Larcheveque,2014,12,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+124,Pipedrive,$1.5B,Unicorn ($1B–$10B),CRM / Sales Software,Estonia,Europe,Tallinn,Timo Rein,2010,16,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+125,Jasper AI,$1.5B,Unicorn ($1B–$10B),Generative AI / Content,United States,North America,Austin,Dave Rogenmoser,2021,5,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+126,Affinity,$1.5B,Unicorn ($1B–$10B),CRM / Relationship Intelligence,United States,North America,San Francisco,"Ray Zhou, Joe Lonsdale",2014,12,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+127,Articulate,$1.5B,Unicorn ($1B–$10B),Edtech / eLearning,United States,North America,New York,Adam Schwartz,2002,24,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+128,Persona,$1.5B,Unicorn ($1B–$10B),Identity Verification,United States,North America,San Francisco,Rick Song,2018,8,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+129,NotCo,$1.5B,Unicorn ($1B–$10B),Food Tech / Plant-based AI,Chile,South America,Santiago,Matías Muchnick,2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+130,SWVL,$1.5B,Unicorn ($1B–$10B),Mass Transit / Mobility,Egypt,Africa,Cairo,Mostafa Kandil,2017,9,Public,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+131,Andela,$1.5B,Unicorn ($1B–$10B),HR Tech / Remote Engineering,Nigeria,Africa,New York,Jeremy Johnson,2014,12,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+132,Gupshup,$1.4B,Unicorn ($1B–$10B),Conversational AI / Messaging,India,Asia,Mumbai,Beerud Sheth,2004,22,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+133,Zepto,$1.4B,Unicorn ($1B–$10B),Quick Commerce,India,Asia,Mumbai,"Aadit Palicha, Kaivalya Vohra",2021,5,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+134,Konfio,$1.3B,Unicorn ($1B–$10B),Fintech / SMB Lending,Mexico,North America,Mexico City,David Arana,2013,13,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+135,Kuda,$1.1B,Unicorn ($1B–$10B),Fintech / Neobank Africa,Nigeria,Africa,Lagos,Babs Ogundeyi,2018,8,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+136,G2,$1.1B,Unicorn ($1B–$10B),B2B Software Reviews,United States,North America,Chicago,Godard Abel,2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+137,Einride,$1.1B,Unicorn ($1B–$10B),Autonomous Freight / EV,Sweden,Europe,Stockholm,Robert Falck,2016,10,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+138,Xendit,$1.0B,Unicorn ($1B–$10B),Fintech / Payments,Indonesia,Asia,Jakarta,Moses Lo,2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+139,Sennder,$1.0B,Unicorn ($1B–$10B),Logistics / Freight Tech,Germany,Europe,Berlin,David Nothacker,2015,11,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+140,Onfido,$1.0B,Unicorn ($1B–$10B),Identity Verification / AI,United Kingdom,Europe,London,Husayn Kassai,2012,14,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+141,Swile,$1.0B,Unicorn ($1B–$10B),HR Tech / Employee Benefits,France,Europe,Montpellier,Loïc Soubeyrand,2017,9,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+142,Pigment,$1.0B,Unicorn ($1B–$10B),Business Planning / Analytics,France,Europe,Paris,Romain Niccoli,2019,7,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+143,Character AI,$1.0B,Unicorn ($1B–$10B),Generative AI / Chatbots,United States,North America,Menlo Park,"Noam Shazeer, Daniel De Freitas",2021,5,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026
+144,MNT-Halan,$1.0B,Unicorn ($1B–$10B),Fintech / MENA,Egypt,Africa,Cairo,Mounir Nakhla,2018,8,Private,CB Insights / Wikipedia / Crunchbase (2024),2/12/2026

@@ -1,0 +1,144 @@
+┌─────────────────────────────────────┐
+│┌───────────────────────────────────┐│
+││    Query Profiling Information    ││
+│└───────────────────────────────────┘│
+└─────────────────────────────────────┘
+EXPLAIN ANALYZE          SELECT              c.industry,             SUM(f.valuation_usd) as total_valuation         FROM read_parquet('s3://gold/fact_valuation_grit.parquet') f         JOIN read_parquet('s3://gold/dim_company.parquet') c ON f.company_name = c.company_name         JOIN read_parquet('s3://gold/dim_executive.parquet') e ON f.executive_name = e.executive_name         WHERE c.industry LIKE '%Artificial Intelligence%'            AND e.tier_flag NOT LIKE 'Top Tier%'         GROUP BY c.industry;     
+┌─────────────────────────────────────┐
+│┌───────────────────────────────────┐│
+││         HTTPFS HTTP Stats         ││
+││                                   ││
+││            in: 0 bytes            ││
+││            out: 0 bytes           ││
+││              #HEAD: 3             ││
+││              #GET: 0              ││
+││              #PUT: 0              ││
+││              #POST: 0             ││
+││             #DELETE: 0            ││
+│└───────────────────────────────────┘│
+└─────────────────────────────────────┘
+┌────────────────────────────────────────────────┐
+│┌──────────────────────────────────────────────┐│
+││              Total Time: 0.0227s             ││
+│└──────────────────────────────────────────────┘│
+└────────────────────────────────────────────────┘
+┌───────────────────────────┐
+│           QUERY           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│      EXPLAIN_ANALYZE      │
+│    ────────────────────   │
+│                           │
+│           0 rows          │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│       HASH_GROUP_BY       │
+│    ────────────────────   │
+│         Groups: #0        │
+│    Aggregates: sum(#1)    │
+│                           │
+│                           │
+│                           │
+│           2 rows          │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│         PROJECTION        │
+│    ────────────────────   │
+│          industry         │
+│       valuation_usd       │
+│                           │
+│                           │
+│                           │
+│          346 rows         │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│         HASH_JOIN         │
+│    ────────────────────   │
+│      Join Type: INNER     │
+│                           │
+│        Conditions:        │
+│      executive_name =     │
+│       executive_name      ├──────────────┐
+│                           │              │
+│                           │              │
+│                           │              │
+│          346 rows         │              │
+│           0.00s           │              │
+└─────────────┬─────────────┘              │
+┌─────────────┴─────────────┐┌─────────────┴─────────────┐
+│         TABLE_SCAN        ││         HASH_JOIN         │
+│    ────────────────────   ││    ────────────────────   │
+│         Function:         ││      Join Type: INNER     │
+│        READ_PARQUET       ││                           │
+│                           ││        Conditions:        │
+│        Projections:       ││company_name = company_name│
+│       executive_name      ││                           │
+│                           ││                           │
+│          Filters:         ││                           │
+│  (NOT prefix(tier_flag,   ││                           │
+│        'Top Tier'))       ││           0.00s           │
+│                           ││                           │
+│      Dynamic Filters:     ││                           │
+│  optional: executive_name ││                           │
+│  IN ('Arthur Mensch', 'Sam││                           │
+│  Altman', 'Dario Amodei', ││                           │
+│   'Elon Musk', 'Alexandr  ││                           │
+│    Wang') AND optional:   ││                           ├──────────────┐
+│  executive_name>='Alexandr││                           │              │
+│     Wang' AND optional:   ││                           │              │
+│    executive_name<='Sam   ││                           │              │
+│    Altman' AND optional:  ││                           │              │
+│    executive_name IN BF   ││                           │              │
+│      (executive_name)     ││                           │              │
+│                           ││                           │              │
+│    Total Files Read: 1    ││                           │              │
+│                           ││                           │              │
+│        Filename(s):       ││                           │              │
+│  s3://gold/dim_executive  ││                           │              │
+│          .parquet         ││                           │              │
+│                           ││                           │              │
+│                           ││                           │              │
+│                           ││                           │              │
+│          17 rows          ││          46 rows          │              │
+│           0.00s           ││          (0.00s)          │              │
+└───────────────────────────┘└─────────────┬─────────────┘              │
+                             ┌─────────────┴─────────────┐┌─────────────┴─────────────┐
+                             │         TABLE_SCAN        ││         TABLE_SCAN        │
+                             │    ────────────────────   ││    ────────────────────   │
+                             │         Function:         ││         Function:         │
+                             │        READ_PARQUET       ││        READ_PARQUET       │
+                             │                           ││                           │
+                             │        Projections:       ││        Projections:       │
+                             │        company_name       ││        company_name       │
+                             │       executive_name      ││          industry         │
+                             │       valuation_usd       ││                           │
+                             │                           ││          Filters:         │
+                             │      Dynamic Filters:     ││    contains(industry,     │
+                             │ optional: company_name IN ││ 'Artificial Intelligence')│
+                             │ ('Mistral AI', 'Scale AI',││                           │
+                             │  'ByteDance', 'Anthropic',││    Total Files Read: 1    │
+                             │    'Cohere', 'OpenAI',    ││                           │
+                             │     'Moonshot AI') AND    ││        Filename(s):       │
+                             │  optional: company_name>= ││   s3://gold/dim_company   │
+                             │ 'Anthropic' AND optional: ││          .parquet         │
+                             │  company_name<='Scale AI' ││                           │
+                             │        AND optional:      ││                           │
+                             │     company_name IN BF    ││                           │
+                             │       (company_name)      ││                           │
+                             │                           ││           0.00s           │
+                             │    Total Files Read: 1    ││                           │
+                             │                           ││                           │
+                             │        Filename(s):       ││                           │
+                             │         s3://gold         ││                           │
+                             │    /fact_valuation_grit   ││                           │
+                             │          .parquet         ││                           │
+                             │                           ││                           │
+                             │                           ││                           │
+                             │                           ││                           │
+                             │          46 rows          ││           7 rows          │
+                             │           0.00s           ││          (0.00s)          │
+                             └───────────────────────────┘└───────────────────────────┘
+
