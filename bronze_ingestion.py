@@ -158,29 +158,35 @@ def main():
         print(f"[INFO] Created directory {raw_data_dir}. Place raw data files here.")
     
     # Fetch live data from Wikidata
-    wikidata_query = '''
-        SELECT DISTINCT ?companyLabel ?executiveLabel ?universityLabel ?degreeLabel
-        WHERE {
-            ?company wdt:P31/wdt:P279* wd:Q4830453. 
-            ?company wdt:P169 ?executive. 
-            ?executive wdt:P69 ?university. 
-            OPTIONAL { ?executive wdt:P512 ?degree. }
-            SERVICE wikibase:label { 
-                bd:serviceParam wikibase:language "en". 
-                ?company rdfs:label ?companyLabel.
-                ?executive rdfs:label ?executiveLabel.
-                ?university rdfs:label ?universityLabel.
-                ?degree rdfs:label ?degreeLabel.
-            }
-        }
-    '''
-    wikidata_file = os.path.join(raw_data_dir, "wikidata_executive_profile.csv")
+    temp_dir = os.path.join(os.path.dirname(__file__), ".temp")
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
+        
+    wikidata_query = '''SELECT DISTINCT ?companyLabel ?executiveLabel ?universityLabel ?degreeLabel
+WHERE {
+  ?company wdt:P31/wdt:P279* wd:Q4830453. 
+  ?company wdt:P169 ?executive. 
+  ?executive wdt:P69 ?university. 
+  OPTIONAL { ?executive wdt:P512 ?degree. }
+  SERVICE wikibase:label { 
+    bd:serviceParam wikibase:language "en". 
+    ?company rdfs:label ?companyLabel.
+    ?executive rdfs:label ?executiveLabel.
+    ?university rdfs:label ?universityLabel.
+    ?degree rdfs:label ?degreeLabel.
+  }
+}'''
+    wikidata_file = os.path.join(temp_dir, "wikidata_executive_profile.csv")
     fetch_wikidata_sparql(wikidata_query, wikidata_file)
     
-    # Identify all supported flat files in the raw dropzone
+    # Identify all supported flat files in the raw dropzone (Manual Files)
     files_to_ingest = []
-    for ext in ["*.csv", "*.xlsx", "*.json"]:
-        files_to_ingest.extend(glob.glob(os.path.join(raw_data_dir, ext)))
+    for file_path in glob.glob(os.path.join(raw_data_dir, "*")):
+        if file_path.endswith((".csv", ".json", ".xml", ".xlsx", ".txt")):
+            files_to_ingest.append(file_path)
+            
+    # Explicitly add the API file from .temp to the ingestion list
+    files_to_ingest.append(wikidata_file)
         
     s3_client = get_s3_client()
     ensure_bucket_exists(s3_client, BRONZE_BUCKET)
