@@ -124,7 +124,7 @@ def create_gold_layer():
         ) TO 's3://gold/fact_valuation_grit.parquet' (FORMAT PARQUET, OVERWRITE_OR_IGNORE);
     """)
     
-    print("[SUCCESS] Gold Layer Star Schema created successfully in S3!")
+    print("[ OK ] Gold Layer Star Schema created successfully in S3!")
 
 if __name__ == "__main__":
     create_gold_layer()

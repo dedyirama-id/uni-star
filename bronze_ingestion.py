@@ -90,11 +90,11 @@ def upload_to_bronze(s3_client, file_path, object_name):
             print(f"[SKIP] [{object_name}] File has not changed (MD5 matches E-Tag: {local_md5})")
             return
         else:
-            print(f"[UPDATE] [{object_name}] File changed. Local MD5: {local_md5}, S3 E-Tag: {s3_etag}")
+            print(f"[INFO] [{object_name}] File changed. Local MD5: {local_md5}, S3 E-Tag: {s3_etag}")
             
     except ClientError as e:
         if e.response['Error']['Code'] == '404':
-            print(f"[NEW] [{object_name}] File not found in MinIO. Uploading...")
+            print(f"[INFO] [{object_name}] File not found in MinIO. Uploading...")
         else:
             raise
 
@@ -118,7 +118,7 @@ def upload_to_bronze(s3_client, file_path, object_name):
         object_name,
         ExtraArgs={'Metadata': metadata}
     )
-    print(f"[SUCCESS] [{object_name}] Uploaded with metadata: {metadata}")
+    print(f"[ OK ] [{object_name}] Uploaded with metadata: {metadata}")
 
 import glob
 
@@ -141,9 +141,9 @@ def fetch_wikidata_sparql(query, output_path):
         response.raise_for_status()
         with open(output_path, 'wb') as f:
             f.write(response.content)
-        print(f"[SUCCESS] Wikidata data downloaded to {output_path}")
+        print(f"[ OK ] Wikidata data downloaded to {output_path}")
     except Exception as e:
-        print(f"[ERROR] Failed to fetch Wikidata: {e}")
+        print(f"[ERR ] Failed to fetch Wikidata: {e}")
 
 def main():
     """
@@ -198,14 +198,14 @@ WHERE {
     
     print(f"[INFO] Starting Advanced Ingestion to Bronze Layer from {raw_data_dir}...")
     if not files_to_ingest:
-        print(f"[WARNING] No data files found in {raw_data_dir}. Skipping ingestion.")
+        print(f"[WARN] No data files found in {raw_data_dir}. Skipping ingestion.")
         return
 
     for file_path in files_to_ingest:
         file_name = os.path.basename(file_path)
         upload_to_bronze(s3_client, file_path, file_name)
             
-    print("[SUCCESS] Ingestion Process Completed.")
+    print("[ OK ] Ingestion Process Completed.")
 
 if __name__ == "__main__":
     main()

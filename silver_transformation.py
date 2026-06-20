@@ -154,7 +154,7 @@ def process_silver():
         mode="overwrite"
     )
 
-    print("--- File Format Storage Comparison ---")
+    print("------ File Format Storage Comparison ------")
     s3 = get_s3_client()
     
     # Bronze Size
@@ -168,10 +168,12 @@ def process_silver():
     silver_wiki = calculate_s3_folder_size(s3, SILVER_BUCKET, 'executive_profiles/')
     total_silver = silver_kaggle + silver_wiki
     
-    print(f"[INFO] Bronze Layer (Raw CSV/Excel): {total_bronze / 1024:.2f} KB")
-    print(f"[INFO] Silver Layer (Compressed Delta/Parquet): {total_silver / 1024:.2f} KB")
-    print(f"[INFO] Storage Reduction: {((total_bronze - total_silver) / total_bronze) * 100:.2f}%")
-    print("[SUCCESS] Silver Transformation Process Completed.")
+    print(f"Bronze Layer (Raw CSV/Excel): {total_bronze / 1024:.2f} KB")
+    print(f"Silver Layer (Compressed Delta/Parquet): {total_silver / 1024:.2f} KB")
+    print(f"Storage Reduction: {((total_bronze - total_silver) / total_bronze) * 100:.2f}%")
+    print("--------------------------------------------")
+
+    print("[INFO] Silver Transformation Process Completed.")
 
 if __name__ == "__main__":
     process_silver()
