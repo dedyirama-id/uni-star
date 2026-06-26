@@ -5,7 +5,7 @@
 
 WITH model_data AS (
     SELECT
-        f.company_name,
+        f.company_key,
         LN(f.valuation_usd) AS log_valuation_usd,
         e.tier_flag AS university_tier,
         c.industry,
@@ -18,9 +18,9 @@ WITH model_data AS (
         END AS company_age_bucket
     FROM read_parquet('s3://gold/fact_valuation_grit.parquet') f
     JOIN read_parquet('s3://gold/dim_company.parquet') c
-        ON f.company_name = c.company_name
+        ON f.company_key = c.company_key
     JOIN read_parquet('s3://gold/dim_executive.parquet') e
-        ON f.executive_name = e.executive_name
+        ON f.executive_key = e.executive_key
     WHERE f.valuation_usd > 0
       AND f.company_age_years IS NOT NULL
       AND e.tier_flag IS NOT NULL

@@ -10,7 +10,7 @@ SELECT
         ELSE '20+ Years'
     END AS company_age_bucket,
     COUNT(*) AS executive_company_pairs,
-    COUNT(DISTINCT f.company_name) AS total_companies,
+    COUNT(DISTINCT f.company_key) AS total_companies,
     ROUND(AVG(f.company_age_years), 2) AS avg_company_age_years,
     ROUND(AVG(f.experience_grit_index), 2) AS avg_grit_index,
     ROUND(SUM(f.valuation_usd) / 1000000000, 2) AS total_valuation_billion_usd,

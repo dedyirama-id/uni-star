@@ -12,9 +12,9 @@ Pipeline menggunakan medallion architecture:
 
 Skema Gold:
 
-- `dim_company.parquet`
-- `dim_executive.parquet`
-- `fact_valuation_grit.parquet`
+- `dim_company.parquet`: memiliki `company_key` sebagai surrogate key dan `company_id` sebagai business identifier.
+- `dim_executive.parquet`: memiliki `executive_key` sebagai surrogate key dan `executive_id` sebagai business identifier.
+- `fact_valuation_grit.parquet`: memiliki `fact_valuation_grit_key`, `company_key`, dan `executive_key` untuk relasi ke tabel dimensi.
 
 ## Sumber Data
 

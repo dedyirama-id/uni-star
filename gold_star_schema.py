@@ -2,8 +2,6 @@ import duckdb
 import os
 from dotenv import load_dotenv
 from deltalake import DeltaTable
-import os
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -75,13 +73,24 @@ def create_gold_layer():
     print("       - Creating dim_company")
     con.execute("""
         COPY (
-            SELECT DISTINCT
-                Company AS company_name,
-                Industry AS industry,
-                Country AS country,
-                Continent AS continent,
-                City AS city
-            FROM silver_startups
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY company_name) AS company_key,
+                LOWER(REPLACE(company_name, ' ', '_')) AS company_id,
+                company_name,
+                industry,
+                country,
+                continent,
+                city
+            FROM (
+                SELECT DISTINCT
+                    Company AS company_name,
+                    Industry AS industry,
+                    Country AS country,
+                    Continent AS continent,
+                    City AS city
+                FROM silver_startups
+                WHERE Company IS NOT NULL
+            )
         ) TO 's3://gold/dim_company.parquet' (FORMAT PARQUET, OVERWRITE_OR_IGNORE);
     """)
 
@@ -89,13 +98,24 @@ def create_gold_layer():
     print("       - Creating dim_executive")
     con.execute("""
         COPY (
-            SELECT DISTINCT
-                executiveLabel AS executive_name,
-                universityLabel as highest_education_institution,
-                degreeLabel as highest_degree,
-                QS_Rank_Num as qs_world_ranking,
-                University_Tier_Flag as tier_flag
-            FROM silver_executives
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY executive_name, highest_education_institution) AS executive_key,
+                LOWER(REPLACE(executive_name, ' ', '_')) AS executive_id,
+                executive_name,
+                highest_education_institution,
+                highest_degree,
+                qs_world_ranking,
+                tier_flag
+            FROM (
+                SELECT DISTINCT
+                    executiveLabel AS executive_name,
+                    universityLabel AS highest_education_institution,
+                    degreeLabel AS highest_degree,
+                    QS_Rank_Num AS qs_world_ranking,
+                    University_Tier_Flag AS tier_flag
+                FROM silver_executives
+                WHERE executiveLabel IS NOT NULL
+            )
         ) TO 's3://gold/dim_executive.parquet' (FORMAT PARQUET, OVERWRITE_OR_IGNORE);
     """)
 
@@ -103,24 +123,47 @@ def create_gold_layer():
     print("       - Creating fact_valuation_grit")
     con.execute("""
         COPY (
-            SELECT 
-                s.Company AS company_name,
-                e.executiveLabel AS executive_name,
-                CAST(REPLACE(REPLACE(s.Valuation_Formatted, '$', ''), 'B', '') AS DOUBLE) * 1000000000 AS valuation_usd,
-                s.Valuation_Tier AS valuation_tier,
-                s.Year_Founded AS year_founded,
-                s.Company_Age_Years AS company_age_years,
-                -- Experience & Grit Index Logic:
-                -- Older companies reaching high valuations with non-traditional
-                -- founder backgrounds receive a higher Grit Index.
-                CASE 
-                    WHEN e.University_Tier_Flag LIKE 'Unranked%' THEN (s.Company_Age_Years * 2.0)
-                    WHEN e.University_Tier_Flag LIKE 'Non-Top%' THEN (s.Company_Age_Years * 1.5)
-                    ELSE (s.Company_Age_Years * 1.0)
-                END AS experience_grit_index
-            FROM silver_startups s
-            JOIN silver_executives e ON LOWER(s.Company) = LOWER(e.companyLabel) 
-                OR LOWER(s.Founders) LIKE '%' || LOWER(e.executiveLabel) || '%'
+            WITH dim_company AS (
+                SELECT *
+                FROM read_parquet('s3://gold/dim_company.parquet')
+            ),
+            dim_executive AS (
+                SELECT *
+                FROM read_parquet('s3://gold/dim_executive.parquet')
+            ),
+            matched AS (
+                SELECT
+                    dc.company_key,
+                    de.executive_key,
+                    CAST(REPLACE(REPLACE(s.Valuation_Formatted, '$', ''), 'B', '') AS DOUBLE) * 1000000000 AS valuation_usd,
+                    s.Valuation_Tier AS valuation_tier,
+                    s.Year_Founded AS year_founded,
+                    s.Company_Age_Years AS company_age_years,
+                    -- Experience & Grit Index Logic:
+                    -- Older companies reaching high valuations with non-traditional
+                    -- founder backgrounds receive a higher Grit Index.
+                    CASE
+                        WHEN e.University_Tier_Flag LIKE 'Unranked%' THEN (s.Company_Age_Years * 2.0)
+                        WHEN e.University_Tier_Flag LIKE 'Non-Top%' THEN (s.Company_Age_Years * 1.5)
+                        ELSE (s.Company_Age_Years * 1.0)
+                    END AS experience_grit_index
+                FROM silver_startups s
+                JOIN silver_executives e ON LOWER(s.Company) = LOWER(e.companyLabel)
+                    OR LOWER(s.Founders) LIKE '%' || LOWER(e.executiveLabel) || '%'
+                JOIN dim_company dc ON s.Company = dc.company_name
+                JOIN dim_executive de ON e.executiveLabel = de.executive_name
+                    AND e.universityLabel = de.highest_education_institution
+            )
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY company_key, executive_key) AS fact_valuation_grit_key,
+                company_key,
+                executive_key,
+                valuation_usd,
+                valuation_tier,
+                year_founded,
+                company_age_years,
+                experience_grit_index
+            FROM matched
         ) TO 's3://gold/fact_valuation_grit.parquet' (FORMAT PARQUET, OVERWRITE_OR_IGNORE);
     """)
     
