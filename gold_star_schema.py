@@ -171,47 +171,6 @@ def create_gold_layer():
         ) TO 's3://gold/dim_executive.parquet' (FORMAT PARQUET, OVERWRITE_OR_IGNORE);
     """)
 
-    # 2b. Coverage audit table
-    print("       - Creating education_coverage_audit")
-    con.execute("""
-        COPY (
-            WITH founder_education AS (
-                SELECT
-                    sf.company_name,
-                    sf.founder_name,
-                    e.universityLabel AS highest_education_institution
-                FROM startup_founders sf
-                LEFT JOIN silver_executives e
-                    ON sf.founder_match_key = LOWER(TRIM(e.executiveLabel))
-            ),
-            company_coverage AS (
-                SELECT
-                    company_name,
-                    MAX(CASE
-                        WHEN highest_education_institution IS NOT NULL THEN 1
-                        ELSE 0
-                    END) AS has_wikidata_university
-                FROM founder_education
-                GROUP BY company_name
-            )
-            SELECT
-                (SELECT COUNT(*) FROM company_coverage) AS total_companies,
-                (SELECT COUNT(*) FROM company_coverage WHERE has_wikidata_university = 1) AS companies_with_wikidata_university,
-                (SELECT COUNT(*) FROM company_coverage WHERE has_wikidata_university = 0) AS companies_without_wikidata_university,
-                COUNT(DISTINCT company_name || '|' || founder_name) AS founder_company_rows,
-                COUNT(DISTINCT CASE
-                    WHEN highest_education_institution IS NOT NULL
-                    THEN company_name || '|' || founder_name || '|' || highest_education_institution
-                END) AS founder_university_rows,
-                ROUND(
-                    (SELECT COUNT(*) FROM company_coverage WHERE has_wikidata_university = 1)
-                    * 100.0 / NULLIF((SELECT COUNT(*) FROM company_coverage), 0),
-                    2
-                ) AS university_coverage_pct
-            FROM founder_education
-        ) TO 's3://gold/education_coverage_audit.parquet' (FORMAT PARQUET, OVERWRITE_OR_IGNORE);
-    """)
-
     # 3. Fact Valuation & Grit
     print("       - Creating fact_valuation_grit")
     con.execute("""

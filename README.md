@@ -15,7 +15,6 @@ Skema Gold:
 - `dim_company.parquet`: memiliki `company_key` sebagai surrogate key dan `company_id` sebagai business identifier.
 - `dim_executive.parquet`: memiliki `executive_key` sebagai surrogate key dan `executive_id` sebagai business identifier. Founder tanpa data universitas di Wikidata diberi kategori `Unknown Education`.
 - `fact_valuation_grit.parquet`: memiliki `fact_valuation_grit_key`, `company_key`, dan `executive_key` untuk relasi ke tabel dimensi.
-- `education_coverage_audit.parquet`: tabel audit untuk melihat cakupan perusahaan dan founder yang berhasil diperkaya data universitas dari Wikidata.
 
 ## Sumber Data
 

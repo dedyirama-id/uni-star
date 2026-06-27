@@ -16,7 +16,6 @@ MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
 BRONZE_BUCKET = "bronze"
 SILVER_BUCKET = "silver"
-REPORT_DIR = "reports"
 MISSING_VALUE_MARKERS = ["NA", "N/A", "NULL", "null", ""]
 QS_FILE_KEYWORD = "QS World University Rankings"
 UNIVERSITY_ALIAS = {
@@ -124,15 +123,16 @@ def calculate_s3_folder_size(client, bucket, prefix):
                 total_size += obj['Size']
     return total_size
 
-def write_storage_comparison_report(rows):
+def print_storage_comparison_table(rows):
     """
-    Persists the storage comparison as a CSV artifact for presentation/audit evidence.
+    Prints the storage comparison table directly to the terminal.
     """
-    os.makedirs(REPORT_DIR, exist_ok=True)
-    report_path = os.path.join(REPORT_DIR, "storage_comparison.csv")
-    report_df = pd.DataFrame(rows)
-    report_df.to_csv(report_path, index=False)
-    print(f"[ OK ] Storage comparison report written to {report_path}")
+    display_df = pd.DataFrame(rows).copy()
+    display_df["size_kb"] = display_df.apply(
+        lambda row: f"{row['value'] / 1024:.2f}" if row["unit"] == "bytes" else "-",
+        axis=1
+    )
+    print(display_df.to_string(index=False))
 
 def process_silver():
     """
@@ -243,7 +243,8 @@ def process_silver():
         mode="overwrite"
     )
 
-    print("------ File Format Storage Comparison ------")
+    print("[ OK ] Silver Transformation Process Completed.")
+    print("---------------- File Format Storage Comparison ----------------")
     s3 = get_s3_client()
     
     # Bronze Size
@@ -255,26 +256,40 @@ def process_silver():
     # Silver Size (Delta/Parquet)
     silver_kaggle = calculate_s3_folder_size(s3, SILVER_BUCKET, 'unicorn_startups/')
     silver_wiki = calculate_s3_folder_size(s3, SILVER_BUCKET, 'executive_profiles/')
+    silver_kaggle_log = calculate_s3_folder_size(s3, SILVER_BUCKET, 'unicorn_startups/_delta_log/')
+    silver_wiki_log = calculate_s3_folder_size(s3, SILVER_BUCKET, 'executive_profiles/_delta_log/')
+    silver_kaggle_data = silver_kaggle - silver_kaggle_log
+    silver_wiki_data = silver_wiki - silver_wiki_log
+    total_silver_data = silver_kaggle_data + silver_wiki_data
+    total_silver_log = silver_kaggle_log + silver_wiki_log
     total_silver = silver_kaggle + silver_wiki
-    reduction_pct = ((total_bronze - total_silver) / total_bronze) * 100 if total_bronze else 0
+    data_footprint_reduction_pct = ((total_bronze - total_silver_data) / total_bronze) * 100 if total_bronze else 0
+    delta_total_reduction_pct = ((total_bronze - total_silver) / total_bronze) * 100 if total_bronze else 0
     comparison_rows = [
-        {"layer": "bronze", "dataset": "kaggle_unicorn_startups", "format": "csv", "size_bytes": bronze_kaggle},
-        {"layer": "bronze", "dataset": "wikidata_executive_profile", "format": "csv", "size_bytes": bronze_wiki},
-        {"layer": "bronze", "dataset": qs_object_key, "format": "xlsx", "size_bytes": bronze_qs},
-        {"layer": "silver", "dataset": "unicorn_startups", "format": "delta/parquet", "size_bytes": silver_kaggle},
-        {"layer": "silver", "dataset": "executive_profiles", "format": "delta/parquet", "size_bytes": silver_wiki},
-        {"layer": "summary", "dataset": "bronze_total", "format": "raw", "size_bytes": total_bronze},
-        {"layer": "summary", "dataset": "silver_total", "format": "delta/parquet", "size_bytes": total_silver},
-        {"layer": "summary", "dataset": "storage_reduction_pct", "format": "metric", "size_bytes": round(reduction_pct, 2)},
+        {"layer": "bronze", "dataset": "kaggle_unicorn_startups", "component": "raw_file", "format": "csv", "value": bronze_kaggle, "unit": "bytes"},
+        {"layer": "bronze", "dataset": "wikidata_executive_profile", "component": "raw_file", "format": "csv", "value": bronze_wiki, "unit": "bytes"},
+        {"layer": "bronze", "dataset": qs_object_key, "component": "raw_file", "format": "xlsx", "value": bronze_qs, "unit": "bytes"},
+        {"layer": "silver", "dataset": "unicorn_startups", "component": "parquet_data", "format": "parquet", "value": silver_kaggle_data, "unit": "bytes"},
+        {"layer": "silver", "dataset": "unicorn_startups", "component": "delta_log", "format": "json/checkpoint", "value": silver_kaggle_log, "unit": "bytes"},
+        {"layer": "silver", "dataset": "executive_profiles", "component": "parquet_data", "format": "parquet", "value": silver_wiki_data, "unit": "bytes"},
+        {"layer": "silver", "dataset": "executive_profiles", "component": "delta_log", "format": "json/checkpoint", "value": silver_wiki_log, "unit": "bytes"},
+        {"layer": "summary", "dataset": "bronze_total", "component": "raw_footprint", "format": "raw", "value": total_bronze, "unit": "bytes"},
+        {"layer": "summary", "dataset": "silver_data_total", "component": "parquet_footprint", "format": "parquet", "value": total_silver_data, "unit": "bytes"},
+        {"layer": "summary", "dataset": "silver_delta_log_total", "component": "versioning_overhead", "format": "delta_log", "value": total_silver_log, "unit": "bytes"},
+        {"layer": "summary", "dataset": "silver_total_with_delta_log", "component": "delta_footprint", "format": "delta/parquet", "value": total_silver, "unit": "bytes"},
+        {"layer": "summary", "dataset": "parquet_data_reduction_pct", "component": "metric", "format": "metric", "value": round(data_footprint_reduction_pct, 2), "unit": "percent"},
+        {"layer": "summary", "dataset": "delta_total_reduction_pct", "component": "metric", "format": "metric", "value": round(delta_total_reduction_pct, 2), "unit": "percent"},
     ]
-    write_storage_comparison_report(comparison_rows)
+    print_storage_comparison_table(comparison_rows)
     
+    print("----------------------------------------------------------------")
     print(f"Bronze Layer (Raw CSV/Excel): {total_bronze / 1024:.2f} KB")
-    print(f"Silver Layer (Compressed Delta/Parquet): {total_silver / 1024:.2f} KB")
-    print(f"Storage Reduction: {reduction_pct:.2f}%")
-    print("--------------------------------------------")
-
-    print("[INFO] Silver Transformation Process Completed.")
+    print(f"Silver Parquet Data Only: {total_silver_data / 1024:.2f} KB")
+    print(f"Silver Delta Log Overhead: {total_silver_log / 1024:.2f} KB")
+    print(f"Silver Total with Delta Log: {total_silver / 1024:.2f} KB")
+    print(f"Parquet Data Footprint Reduction: {data_footprint_reduction_pct:.2f}%")
+    print(f"Delta Total Footprint Reduction: {delta_total_reduction_pct:.2f}%")
+    print("----------------------------------------------------------------")
 
 if __name__ == "__main__":
     process_silver()
