@@ -2,6 +2,7 @@ import duckdb
 import os
 from dotenv import load_dotenv
 from deltalake import DeltaTable
+import pandas as pd
 
 load_dotenv()
 
@@ -34,6 +35,40 @@ def get_s3_client():
         region_name=STORAGE_OPTIONS["AWS_REGION"]
     )
 
+def build_startup_founders(df_startups):
+    """
+    Expands the comma-separated Kaggle Founders column into one founder row per
+    company. This keeps all startup companies available for Gold analysis even
+    when Wikidata does not have university data for the founder.
+    """
+    founder_rows = []
+    for _, row in df_startups.iterrows():
+        company_name = row.get("Company")
+        founders = row.get("Founders")
+
+        if pd.isna(company_name):
+            continue
+
+        founder_names = []
+        if not pd.isna(founders):
+            founder_names = [
+                name.strip()
+                for name in str(founders).split(",")
+                if name.strip()
+            ]
+
+        if not founder_names:
+            founder_names = ["Unknown Founder"]
+
+        for founder_name in founder_names:
+            founder_rows.append({
+                "company_name": company_name,
+                "founder_name": founder_name,
+                "founder_match_key": founder_name.lower().strip(),
+            })
+
+    return pd.DataFrame(founder_rows).drop_duplicates()
+
 def create_gold_layer():
     """
     Executes the Gold layer aggregation and dimensional modeling pipeline.
@@ -60,6 +95,7 @@ def create_gold_layer():
     
     con.register('silver_startups', df_startups)
     con.register('silver_executives', df_executives)
+    con.register('startup_founders', build_startup_founders(df_startups))
     
     s3_client = get_s3_client()
     try:
@@ -98,25 +134,82 @@ def create_gold_layer():
     print("       - Creating dim_executive")
     con.execute("""
         COPY (
+            WITH founder_education AS (
+                SELECT DISTINCT
+                    sf.founder_name AS executive_name,
+                    e.universityLabel AS highest_education_institution,
+                    e.degreeLabel AS highest_degree,
+                    e.QS_Rank_Num AS qs_world_ranking,
+                    e.University_Tier_Flag AS tier_flag
+                FROM startup_founders sf
+                LEFT JOIN silver_executives e
+                    ON sf.founder_match_key = LOWER(TRIM(e.executiveLabel))
+            ),
+            executive_candidates AS (
+                SELECT DISTINCT
+                    executive_name,
+                    highest_education_institution,
+                    COALESCE(highest_degree, 'Unknown') AS highest_degree,
+                    qs_world_ranking,
+                    COALESCE(tier_flag, 'Unknown Education') AS tier_flag
+                FROM founder_education
+                WHERE executive_name IS NOT NULL
+            )
             SELECT
-                ROW_NUMBER() OVER (ORDER BY executive_name, highest_education_institution) AS executive_key,
-                LOWER(REPLACE(executive_name, ' ', '_')) AS executive_id,
+                ROW_NUMBER() OVER (
+                    ORDER BY executive_name, COALESCE(highest_education_institution, 'Unknown')
+                ) AS executive_key,
+                LOWER(REPLACE(executive_name, ' ', '_'))
+                    || '_'
+                    || LOWER(REPLACE(COALESCE(highest_education_institution, 'unknown'), ' ', '_')) AS executive_id,
                 executive_name,
                 highest_education_institution,
                 highest_degree,
                 qs_world_ranking,
                 tier_flag
-            FROM (
-                SELECT DISTINCT
-                    executiveLabel AS executive_name,
-                    universityLabel AS highest_education_institution,
-                    degreeLabel AS highest_degree,
-                    QS_Rank_Num AS qs_world_ranking,
-                    University_Tier_Flag AS tier_flag
-                FROM silver_executives
-                WHERE executiveLabel IS NOT NULL
-            )
+            FROM executive_candidates
         ) TO 's3://gold/dim_executive.parquet' (FORMAT PARQUET, OVERWRITE_OR_IGNORE);
+    """)
+
+    # 2b. Coverage audit table
+    print("       - Creating education_coverage_audit")
+    con.execute("""
+        COPY (
+            WITH founder_education AS (
+                SELECT
+                    sf.company_name,
+                    sf.founder_name,
+                    e.universityLabel AS highest_education_institution
+                FROM startup_founders sf
+                LEFT JOIN silver_executives e
+                    ON sf.founder_match_key = LOWER(TRIM(e.executiveLabel))
+            ),
+            company_coverage AS (
+                SELECT
+                    company_name,
+                    MAX(CASE
+                        WHEN highest_education_institution IS NOT NULL THEN 1
+                        ELSE 0
+                    END) AS has_wikidata_university
+                FROM founder_education
+                GROUP BY company_name
+            )
+            SELECT
+                (SELECT COUNT(*) FROM company_coverage) AS total_companies,
+                (SELECT COUNT(*) FROM company_coverage WHERE has_wikidata_university = 1) AS companies_with_wikidata_university,
+                (SELECT COUNT(*) FROM company_coverage WHERE has_wikidata_university = 0) AS companies_without_wikidata_university,
+                COUNT(DISTINCT company_name || '|' || founder_name) AS founder_company_rows,
+                COUNT(DISTINCT CASE
+                    WHEN highest_education_institution IS NOT NULL
+                    THEN company_name || '|' || founder_name || '|' || highest_education_institution
+                END) AS founder_university_rows,
+                ROUND(
+                    (SELECT COUNT(*) FROM company_coverage WHERE has_wikidata_university = 1)
+                    * 100.0 / NULLIF((SELECT COUNT(*) FROM company_coverage), 0),
+                    2
+                ) AS university_coverage_pct
+            FROM founder_education
+        ) TO 's3://gold/education_coverage_audit.parquet' (FORMAT PARQUET, OVERWRITE_OR_IGNORE);
     """)
 
     # 3. Fact Valuation & Grit
@@ -143,16 +236,15 @@ def create_gold_layer():
                     -- Older companies reaching high valuations with non-traditional
                     -- founder backgrounds receive a higher Grit Index.
                     CASE
-                        WHEN e.University_Tier_Flag LIKE 'Unranked%' THEN (s.Company_Age_Years * 2.0)
-                        WHEN e.University_Tier_Flag LIKE 'Non-Top%' THEN (s.Company_Age_Years * 1.5)
+                        WHEN de.tier_flag LIKE 'Unranked%' THEN (s.Company_Age_Years * 2.0)
+                        WHEN de.tier_flag LIKE 'Non-Top%' THEN (s.Company_Age_Years * 1.5)
+                        WHEN de.tier_flag = 'Unknown Education' THEN (s.Company_Age_Years * 1.0)
                         ELSE (s.Company_Age_Years * 1.0)
                     END AS experience_grit_index
                 FROM silver_startups s
-                JOIN silver_executives e ON LOWER(s.Company) = LOWER(e.companyLabel)
-                    OR LOWER(s.Founders) LIKE '%' || LOWER(e.executiveLabel) || '%'
                 JOIN dim_company dc ON s.Company = dc.company_name
-                JOIN dim_executive de ON e.executiveLabel = de.executive_name
-                    AND e.universityLabel = de.highest_education_institution
+                JOIN startup_founders sf ON s.Company = sf.company_name
+                JOIN dim_executive de ON sf.founder_name = de.executive_name
             )
             SELECT
                 ROW_NUMBER() OVER (ORDER BY company_key, executive_key) AS fact_valuation_grit_key,

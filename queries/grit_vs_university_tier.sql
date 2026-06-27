@@ -21,6 +21,7 @@ WITH base_data AS (
     WHERE f.valuation_usd > 0
       AND f.experience_grit_index IS NOT NULL
       AND e.tier_flag IS NOT NULL
+      AND e.tier_flag <> 'Unknown Education'
 )
 
 SELECT

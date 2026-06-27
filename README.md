@@ -1,6 +1,6 @@
 # Analitik Founder Grit Berbasis Data Lakehouse
 
-Proyek ini membangun data lakehouse lokal dengan MinIO sebagai object storage dan DuckDB sebagai compute engine. Pipeline mengintegrasikan data startup unicorn, profil eksekutif dari Wikidata, dan QS World University Rankings untuk menganalisis hubungan latar belakang pendidikan founder dengan valuasi perusahaan.
+Proyek ini membangun data lakehouse lokal dengan MinIO sebagai object storage dan DuckDB sebagai compute engine. Pipeline mengintegrasikan data startup unicorn, profil pendidikan eksekutif dari Wikidata, dan QS World University Rankings untuk menganalisis hubungan latar belakang pendidikan founder dengan valuasi perusahaan.
 
 ## Arsitektur
 
@@ -8,13 +8,14 @@ Pipeline menggunakan medallion architecture:
 
 1. Bronze layer: data mentah dari file lokal dan Wikidata SPARQL disimpan ke bucket `bronze`.
 2. Silver layer: data dibersihkan, dinormalisasi, diperkaya dengan QS ranking, lalu ditulis sebagai Delta Lake table ke bucket `silver`.
-3. Gold layer: data Silver dimodelkan menjadi star schema di bucket `gold`.
+3. Gold layer: data Silver dimodelkan menjadi star schema di bucket `gold`. Seluruh perusahaan dari dataset startup tetap dipertahankan di fact table, sedangkan data pendidikan dari Wikidata dipakai sebagai enrichment opsional.
 
 Skema Gold:
 
 - `dim_company.parquet`: memiliki `company_key` sebagai surrogate key dan `company_id` sebagai business identifier.
-- `dim_executive.parquet`: memiliki `executive_key` sebagai surrogate key dan `executive_id` sebagai business identifier.
+- `dim_executive.parquet`: memiliki `executive_key` sebagai surrogate key dan `executive_id` sebagai business identifier. Founder tanpa data universitas di Wikidata diberi kategori `Unknown Education`.
 - `fact_valuation_grit.parquet`: memiliki `fact_valuation_grit_key`, `company_key`, dan `executive_key` untuk relasi ke tabel dimensi.
+- `education_coverage_audit.parquet`: tabel audit untuk melihat cakupan perusahaan dan founder yang berhasil diperkaya data universitas dari Wikidata.
 
 ## Sumber Data
 
@@ -64,3 +65,5 @@ Untuk Query Explanation Analysis, tambahkan `EXPLAIN ANALYZE` sebelum query pres
 EXPLAIN ANALYZE
 SELECT ...
 ```
+
+Query faktor perusahaan seperti industri, lokasi, dan usia memakai agregasi level perusahaan agar valuasi tidak terhitung ganda ketika satu perusahaan memiliki lebih dari satu founder. Query terkait universitas memfilter `Unknown Education` agar interpretasi hanya memakai data pendidikan tinggi yang tersedia dari Wikidata.

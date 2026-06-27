@@ -15,6 +15,7 @@ FROM read_parquet('s3://gold/fact_valuation_grit.parquet') f
 JOIN read_parquet('s3://gold/dim_executive.parquet') e
     ON f.executive_key = e.executive_key
 WHERE e.tier_flag IS NOT NULL
+  AND e.tier_flag <> 'Unknown Education'
   AND f.valuation_usd > 0
 GROUP BY e.tier_flag
 ORDER BY avg_valuation_billion_usd DESC;
