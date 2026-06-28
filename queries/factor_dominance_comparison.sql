@@ -1,8 +1,3 @@
--- Faktor mana yang paling dominan: universitas, industri, lokasi, atau usia?
--- Query ini menghitung variance share sederhana pada log valuation.
--- Semakin besar variance_explained_ratio, semakin kuat faktor tersebut
--- memisahkan kelompok perusahaan bernilai tinggi dan rendah.
-
 WITH company_level AS (
     SELECT
         f.company_key,

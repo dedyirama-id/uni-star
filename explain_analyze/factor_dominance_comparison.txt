@@ -1,0 +1,385 @@
+# EXPLAIN ANALYZE: factor_dominance_comparison.sql
+# Generated at: 2026-06-28T11:50:19.873978+00:00
+# DuckDB S3 endpoint: 5.189.153.57:9000
+
+## Query
+
+```sql
+WITH company_level AS (
+    SELECT
+        f.company_key,
+        MAX(f.valuation_usd) AS valuation_usd,
+        MIN(CASE
+            WHEN e.qs_world_ranking IS NOT NULL THEN e.qs_world_ranking
+        END) AS best_qs_rank,
+        SUM(CASE
+            WHEN e.tier_flag = 'Unranked Higher Ed' THEN 1
+            ELSE 0
+        END) AS unranked_university_count,
+        c.industry,
+        c.country,
+        MAX(f.company_age_years) AS company_age_years
+    FROM read_parquet('s3://gold/fact_valuation_grit.parquet') f
+    JOIN read_parquet('s3://gold/dim_company.parquet') c
+        ON f.company_key = c.company_key
+    JOIN read_parquet('s3://gold/dim_executive.parquet') e
+        ON f.executive_key = e.executive_key
+    WHERE f.valuation_usd > 0
+      AND f.company_age_years IS NOT NULL
+      AND c.industry IS NOT NULL
+      AND c.country IS NOT NULL
+    GROUP BY f.company_key, c.industry, c.country
+),
+model_data AS (
+    SELECT
+        company_key,
+        LN(valuation_usd) AS log_valuation_usd,
+        CASE
+            WHEN best_qs_rank <= 100 THEN 'Top Tier Elite (Top 100)'
+            WHEN best_qs_rank <= 500 THEN 'Mid Tier (101-500)'
+            WHEN best_qs_rank > 500 THEN 'Non-Top Tier (>500)'
+            WHEN unranked_university_count > 0 THEN 'Unranked Higher Ed'
+            ELSE 'Unknown Education'
+        END AS university_tier,
+        industry,
+        country,
+        CASE
+            WHEN company_age_years <= 5 THEN '0-5 Years'
+            WHEN company_age_years <= 10 THEN '6-10 Years'
+            WHEN company_age_years <= 20 THEN '11-20 Years'
+            ELSE '20+ Years'
+        END AS company_age_bucket
+    FROM company_level
+),
+overall AS (
+    SELECT AVG(log_valuation_usd) AS overall_mean
+    FROM model_data
+),
+total_variance AS (
+    SELECT
+        SUM(POWER(m.log_valuation_usd - o.overall_mean, 2)) AS total_sum_squares
+    FROM model_data m
+    CROSS JOIN overall o
+),
+factor_groups AS (
+    SELECT 'university_tier' AS factor_name, university_tier AS factor_value, COUNT(*) AS n, AVG(log_valuation_usd) AS group_mean
+    FROM model_data
+    GROUP BY university_tier
+
+    UNION ALL
+
+    SELECT 'industry' AS factor_name, industry AS factor_value, COUNT(*) AS n, AVG(log_valuation_usd) AS group_mean
+    FROM model_data
+    GROUP BY industry
+
+    UNION ALL
+
+    SELECT 'country' AS factor_name, country AS factor_value, COUNT(*) AS n, AVG(log_valuation_usd) AS group_mean
+    FROM model_data
+    GROUP BY country
+
+    UNION ALL
+
+    SELECT 'company_age_bucket' AS factor_name, company_age_bucket AS factor_value, COUNT(*) AS n, AVG(log_valuation_usd) AS group_mean
+    FROM model_data
+    GROUP BY company_age_bucket
+)
+SELECT
+    g.factor_name,
+    COUNT(*) AS group_count,
+    SUM(g.n) AS observation_count,
+    ROUND(SUM(g.n * POWER(g.group_mean - o.overall_mean, 2)), 4) AS between_group_sum_squares,
+    ROUND(MAX(tv.total_sum_squares), 4) AS total_sum_squares,
+    ROUND(SUM(g.n * POWER(g.group_mean - o.overall_mean, 2)) / NULLIF(MAX(tv.total_sum_squares), 0), 4) AS variance_explained_ratio
+FROM factor_groups g
+CROSS JOIN overall o
+CROSS JOIN total_variance tv
+WHERE g.factor_value IS NOT NULL
+GROUP BY g.factor_name
+ORDER BY variance_explained_ratio DESC;
+```
+
+## EXPLAIN ANALYZE Output
+
+```text
+analyzed_plan
+
+┌─────────────────────────────────────┐
+│┌───────────────────────────────────┐│
+││    Query Profiling Information    ││
+│└───────────────────────────────────┘│
+└─────────────────────────────────────┘
+EXPLAIN ANALYZE WITH company_level AS (     SELECT         f.company_key,         MAX(f.valuation_usd) AS valuation_usd,         MIN(CASE             WHEN e.qs_world_ranking IS NOT NULL THEN e.qs_world_ranking         END) AS best_qs_rank,         SUM(CASE             WHEN e.tier_flag = 'Unranked Higher Ed' THEN 1             ELSE 0         END) AS unranked_university_count,         c.industry,         c.country,         MAX(f.company_age_years) AS company_age_years     FROM read_parquet('s3://gold/fact_valuation_grit.parquet') f     JOIN read_parquet('s3://gold/dim_company.parquet') c         ON f.company_key = c.company_key     JOIN read_parquet('s3://gold/dim_executive.parquet') e         ON f.executive_key = e.executive_key     WHERE f.valuation_usd > 0       AND f.company_age_years IS NOT NULL       AND c.industry IS NOT NULL       AND c.country IS NOT NULL     GROUP BY f.company_key, c.industry, c.country ), model_data AS (     SELECT         company_key,         LN(valuation_usd) AS log_valuation_usd,         CASE             WHEN best_qs_rank <= 100 THEN 'Top Tier Elite (Top 100)'             WHEN best_qs_rank <= 500 THEN 'Mid Tier (101-500)'             WHEN best_qs_rank > 500 THEN 'Non-Top Tier (>500)'             WHEN unranked_university_count > 0 THEN 'Unranked Higher Ed'             ELSE 'Unknown Education'         END AS university_tier,         industry,         country,         CASE             WHEN company_age_years <= 5 THEN '0-5 Years'             WHEN company_age_years <= 10 THEN '6-10 Years'             WHEN company_age_years <= 20 THEN '11-20 Years'             ELSE '20+ Years'         END AS company_age_bucket     FROM company_level ), overall AS (     SELECT AVG(log_valuation_usd) AS overall_mean     FROM model_data ), total_variance AS (     SELECT         SUM(POWER(m.log_valuation_usd - o.overall_mean, 2)) AS total_sum_squares     FROM model_data m     CROSS JOIN overall o ), factor_groups AS (     SELECT 'university_tier' AS factor_name, university_tier AS factor_value, COUNT(*) AS n, AVG(log_valuation_usd) AS group_mean     FROM model_data     GROUP BY university_tier      UNION ALL      SELECT 'industry' AS factor_name, industry AS factor_value, COUNT(*) AS n, AVG(log_valuation_usd) AS group_mean     FROM model_data     GROUP BY industry      UNION ALL      SELECT 'country' AS factor_name, country AS factor_value, COUNT(*) AS n, AVG(log_valuation_usd) AS group_mean     FROM model_data     GROUP BY country      UNION ALL      SELECT 'company_age_bucket' AS factor_name, company_age_bucket AS factor_value, COUNT(*) AS n, AVG(log_valuation_usd) AS group_mean     FROM model_data     GROUP BY company_age_bucket ) SELECT     g.factor_name,     COUNT(*) AS group_count,     SUM(g.n) AS observation_count,     ROUND(SUM(g.n * POWER(g.group_mean - o.overall_mean, 2)), 4) AS between_group_sum_squares,     ROUND(MAX(tv.total_sum_squares), 4) AS total_sum_squares,     ROUND(SUM(g.n * POWER(g.group_mean - o.overall_mean, 2)) / NULLIF(MAX(tv.total_sum_squares), 0), 4) AS variance_explained_ratio FROM factor_groups g CROSS JOIN overall o CROSS JOIN total_variance tv WHERE g.factor_value IS NOT NULL GROUP BY g.factor_name ORDER BY variance_explained_ratio DESC; 
+┌─────────────────────────────────────┐
+│┌───────────────────────────────────┐│
+││         HTTPFS HTTP Stats         ││
+││                                   ││
+││            in: 16.8 KiB           ││
+││            out: 0 bytes           ││
+││              #HEAD: 3             ││
+││              #GET: 2              ││
+││              #PUT: 0              ││
+││              #POST: 0             ││
+││             #DELETE: 0            ││
+│└───────────────────────────────────┘│
+└─────────────────────────────────────┘
+┌────────────────────────────────────────────────┐
+│┌──────────────────────────────────────────────┐│
+││               Total Time: 1.95s              ││
+│└──────────────────────────────────────────────┘│
+└────────────────────────────────────────────────┘
+┌───────────────────┐
+│       QUERY       │
+└─────────┬─────────┘
+┌─────────┴─────────┐
+│  EXPLAIN_ANALYZE  │
+│    ────────────   │
+│                   │
+│       0 rows      │
+│       0.00s       │
+└─────────┬─────────┘
+┌─────────┴─────────┐
+│        CTE        │
+│    ────────────   │
+│     CTE Name:     │
+│     model_data    │
+│                   │
+│    Table Index:   │
+│         1         ├────────────────────────────────────────────────────┐
+│                   │                                                    │
+│                   │                                                    │
+│                   │                                                    │
+│       0 rows      │                                                    │
+│       0.00s       │                                                    │
+└─────────┬─────────┘                                                    │
+┌─────────┴─────────┐                                          ┌─────────┴─────────┐
+│     PROJECTION    │                                          │        CTE        │
+│    ────────────   │                                          │    ────────────   │
+│    company_key    │                                          │     CTE Name:     │
+│ log_valuation_usd │                                          │      overall      │
+│  university_tier  │                                          │                   │
+│      industry     │                                          │    Table Index:   │
+│      country      │                                          │         2         ├──────────┐
+│ company_age_bucket│                                          │                   │          │
+│                   │                                          │                   │          │
+│                   │                                          │                   │          │
+│                   │                                          │                   │          │
+│      144 rows     │                                          │       0.00s       │          │
+│       0.00s       │                                          │      (0.00s)      │          │
+└─────────┬─────────┘                                          └─────────┬─────────┘          │
+┌─────────┴─────────┐                                          ┌─────────┴─────────┐┌─────────┴─────────┐
+│     PROJECTION    │                                          │UNGROUPED_AGGREGATE││      ORDER_BY     │
+│    ────────────   │                                          │    ────────────   ││    ────────────   │
+│    company_key    │                                          │    Aggregates:    ││ round((sum((g.n * │
+│   valuation_usd   │                                          │      avg(#0)      ││      power((g     │
+│    best_qs_rank   │                                          │                   ││  .group_mean - o  │
+│unranked_university│                                          │                   ││ .overall_mean), 2)│
+│       _count      │                                          │                   ││ )) / "nullif"(max │
+│      industry     │                                          │                   ││(tv.total_sum_squar│
+│      country      │                                          │       0.00s       ││ es), 0)), 4) DESC │
+│ company_age_years │                                          │                   ││                   │
+│                   │                                          │                   ││                   │
+│                   │                                          │                   ││                   │
+│                   │                                          │                   ││                   │
+│      144 rows     │                                          │       1 row       ││       0.01s       │
+│       0.00s       │                                          │      (0.00s)      ││      (0.01s)      │
+└─────────┬─────────┘                                          └─────────┬─────────┘└─────────┬─────────┘
+┌─────────┴─────────┐                                          ┌─────────┴─────────┐┌─────────┴─────────┐
+│     PROJECTION    │                                          │     PROJECTION    ││     PROJECTION    │
+│    ────────────   │                                          │    ────────────   ││    ────────────   │
+│__internal_decompre│                                          │ log_valuation_usd ││    factor_name    │
+│ ss_integral_bigint│                                          │                   ││    group_count    │
+│      (#0, 1)      │                                          │                   ││ observation_count │
+│         #1        │                                          │                   ││between_group_sum_s│
+│         #2        │                                          │                   ││       quares      │
+│         #3        │                                          │       0.00s       ││ total_sum_squares │
+│         #4        │                                          │                   ││variance_explained_│
+│         #5        │                                          │                   ││       ratio       │
+│         #6        │                                          │                   ││                   │
+│                   │                                          │                   ││                   │
+│                   │                                          │                   ││                   │
+│                   │                                          │                   ││                   │
+│      144 rows     │                                          │      144 rows     ││       0.00s       │
+│       0.00s       │                                          │      (0.00s)      ││      (0.00s)      │
+└─────────┬─────────┘                                          └─────────┬─────────┘└─────────┬─────────┘
+┌─────────┴─────────┐                                          ┌─────────┴─────────┐┌─────────┴─────────┐
+│   HASH_GROUP_BY   │                                          │      CTE_SCAN     ││   HASH_GROUP_BY   │
+│    ────────────   │                                          │    ────────────   ││    ────────────   │
+│      Groups:      │                                          │    CTE Index: 1   ││     Groups: #0    │
+│         #0        │                                          │                   ││                   │
+│         #1        │                                          │                   ││    Aggregates:    │
+│         #2        │                                          │                   ││    count_star()   │
+│                   │                                          │                   ││      sum(#1)      │
+│    Aggregates:    │                                          │       0.00s       ││      sum(#2)      │
+│      max(#3)      │                                          │                   ││      max(#3)      │
+│      min(#4)      │                                          │                   ││                   │
+│      sum(#5)      │                                          │                   ││                   │
+│      max(#6)      │                                          │                   ││                   │
+│                   │                                          │                   ││                   │
+│                   │                                          │                   ││       0.01s       │
+│                   │                                          │                   ││                   │
+│      144 rows     │                                          │      144 rows     ││       4 rows      │
+│       0.00s       │                                          │      (0.00s)      ││      (0.01s)      │
+└─────────┬─────────┘                                          └───────────────────┘└─────────┬─────────┘
+┌─────────┴─────────┐                                                               ┌─────────┴─────────┐
+│     PROJECTION    │                                                               │     PROJECTION    │
+│    ────────────   │                                                               │    ────────────   │
+│    company_key    │                                                               │    factor_name    │
+│      industry     │                                                               │         n         │
+│      country      │                                                               │ (CAST(n AS DOUBLE)│
+│   valuation_usd   │                                                               │      * power(     │
+│    CASE  WHEN (   │                                                               │   (group_mean -   │
+│ (qs_world_ranking │                                                               │  overall_mean), 2 │
+│    IS NOT NULL))  │                                                               │        .0))       │
+│ THEN (qs_world_ran│                                                               │ total_sum_squares │
+│king) ELSE NULL END│                                                               │                   │
+│    CASE  WHEN (   │                                                               │                   │
+│   (tier_flag =    │                                                               │                   │
+│  'Unranked Higher │                                                               │                   │
+│   Ed')) THEN (1)  │                                                               │       0.00s       │
+│     ELSE 0 END    │                                                               │                   │
+│ company_age_years │                                                               │                   │
+│                   │                                                               │                   │
+│                   │                                                               │                   │
+│                   │                                                               │                   │
+│      178 rows     │                                                               │      155 rows     │
+│       0.00s       │                                                               │      (0.00s)      │
+└─────────┬─────────┘                                                               └─────────┬─────────┘
+┌─────────┴─────────┐                                                               ┌─────────┴─────────┐
+│     PROJECTION    │                                                               │   CROSS_PRODUCT   │
+│    ────────────   │                                                               │    ────────────   │
+│         #0        │                                                               │                   │
+│         #1        │                                                               │                   │
+│__internal_compress│                                                               │       0.00s       │
+│ _integral_utinyint│                                                               │                   │
+│      (#4, 1)      │                                                               │                   │
+│         #5        │                                                               │                   │
+│         #6        │                                                               │                   ├─────────────────────────────────────────────────────────────────────────┐
+│         #2        │                                                               │                   │                                                                         │
+│         #3        │                                                               │                   │                                                                         │
+│                   │                                                               │                   │                                                                         │
+│                   │                                                               │                   │                                                                         │
+│                   │                                                               │                   │                                                                         │
+│      178 rows     │                                                               │      155 rows     │                                                                         │
+│       0.00s       │                                                               │      (0.00s)      │                                                                         │
+└─────────┬─────────┘                                                               └─────────┬─────────┘                                                                         │
+┌─────────┴─────────┐                                                               ┌─────────┴─────────┐                                                               ┌─────────┴─────────┐
+│     HASH_JOIN     │                                                               │       UNION       │                                                               │   CROSS_PRODUCT   │
+│    ────────────   │                                                               │    ────────────   │                                                               │    ────────────   │
+│     Join Type:    │                                                               │                   │                                                               │                   │
+│       INNER       │                                                               │                   │                                                               │                   │
+│                   │                                                               │       0.00s       │                                                               │       0.00s       │
+│    Conditions:    │                                                               │                   │                                                               │                   │
+│  executive_key =  ├──────────┐                                                    │                   ├──────────┬────────────────────┬────────────────────┐          │                   ├──────────┐
+│    executive_key  │          │                                                    │                   │          │                    │                    │          │                   │          │
+│                   │          │                                                    │                   │          │                    │                    │          │                   │          │
+│                   │          │                                                    │                   │          │                    │                    │          │                   │          │
+│                   │          │                                                    │                   │          │                    │                    │          │                   │          │
+│      178 rows     │          │                                                    │      155 rows     │          │                    │                    │          │       1 row       │          │
+│       0.00s       │          │                                                    │      (0.00s)      │          │                    │                    │          │      (0.00s)      │          │
+└─────────┬─────────┘          │                                                    └─────────┬─────────┘          │                    │                    │          └─────────┬─────────┘          │
+┌─────────┴─────────┐┌─────────┴─────────┐                                          ┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐
+│     TABLE_SCAN    ││     HASH_JOIN     │                                          │     PROJECTION    ││     PROJECTION    ││     PROJECTION    ││     PROJECTION    ││      CTE_SCAN     ││UNGROUPED_AGGREGATE│
+│    ────────────   ││    ────────────   │                                          │    ────────────   ││    ────────────   ││    ────────────   ││    ────────────   ││    ────────────   ││    ────────────   │
+│     Function:     ││     Join Type:    │                                          │    factor_name    ││    factor_name    ││    factor_name    ││    factor_name    ││    CTE Index: 2   ││    Aggregates:    │
+│    READ_PARQUET   ││       INNER       │                                          │         n         ││         n         ││         n         ││         n         ││                   ││      sum(#0)      │
+│                   ││                   │                                          │     group_mean    ││     group_mean    ││     group_mean    ││     group_mean    ││                   ││                   │
+│    Projections:   ││    Conditions:    │                                          │                   ││                   ││                   ││                   ││                   ││                   │
+│   executive_key   ││   company_key =   │                                          │                   ││                   ││                   ││                   ││                   ││                   │
+│  qs_world_ranking ││     company_key   │                                          │                   ││                   ││                   ││                   ││       0.00s       ││                   │
+│     tier_flag     ││                   │                                          │                   ││                   ││                   ││                   ││                   ││       0.00s       │
+│                   ││                   │                                          │       0.00s       ││       0.00s       ││       0.00s       ││       0.00s       ││                   ││                   │
+│  Dynamic Filters: ││                   │                                          │                   ││                   ││                   ││                   ││                   ││                   │
+│     optional:     ││                   │                                          │                   ││                   ││                   ││                   ││                   ││                   │
+│  executive_key>=1 ││       0.00s       │                                          │                   ││                   ││                   ││                   ││                   ││                   │
+│    AND optional:  ││                   │                                          │                   ││                   ││                   ││                   ││                   ││                   │
+│ executive_key<=177││                   ├──────────┐                               │                   ││                   ││                   ││                   ││                   ││                   │
+│                   ││                   │          │                               │                   ││                   ││                   ││                   ││                   ││                   │
+│ Total Files Read: ││                   │          │                               │                   ││                   ││                   ││                   ││                   ││                   │
+│         1         ││                   │          │                               │                   ││                   ││                   ││                   ││                   ││                   │
+│                   ││                   │          │                               │                   ││                   ││                   ││                   ││                   ││                   │
+│    Filename(s):   ││                   │          │                               │                   ││                   ││                   ││                   ││                   ││                   │
+│     s3://gold     ││                   │          │                               │                   ││                   ││                   ││                   ││                   ││                   │
+│   /dim_executive  ││                   │          │                               │                   ││                   ││                   ││                   ││                   ││                   │
+│      .parquet     ││                   │          │                               │                   ││                   ││                   ││                   ││                   ││                   │
+│                   ││                   │          │                               │                   ││                   ││                   ││                   ││                   ││                   │
+│                   ││                   │          │                               │                   ││                   ││                   ││                   ││                   ││                   │
+│                   ││                   │          │                               │                   ││                   ││                   ││                   ││                   ││                   │
+│      177 rows     ││      178 rows     │          │                               │       5 rows      ││      118 rows     ││      28 rows      ││       4 rows      ││       1 row       ││       1 row       │
+│       0.00s       ││      (0.00s)      │          │                               │      (0.00s)      ││      (0.00s)      ││      (0.00s)      ││      (0.00s)      ││      (0.00s)      ││      (0.00s)      │
+└───────────────────┘└─────────┬─────────┘          │                               └─────────┬─────────┘└─────────┬─────────┘└─────────┬─────────┘└─────────┬─────────┘└───────────────────┘└─────────┬─────────┘
+                     ┌─────────┴─────────┐┌─────────┴─────────┐                     ┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐                     ┌─────────┴─────────┐
+                     │     TABLE_SCAN    ││     TABLE_SCAN    │                     │   HASH_GROUP_BY   ││   HASH_GROUP_BY   ││   HASH_GROUP_BY   ││   HASH_GROUP_BY   │                     │     PROJECTION    │
+                     │    ────────────   ││    ────────────   │                     │    ────────────   ││    ────────────   ││    ────────────   ││    ────────────   │                     │    ────────────   │
+                     │     Function:     ││     Function:     │                     │     Groups: #0    ││     Groups: #0    ││     Groups: #0    ││     Groups: #0    │                     │power((log_valuatio│
+                     │    READ_PARQUET   ││    READ_PARQUET   │                     │                   ││                   ││                   ││                   │                     │n_usd - overall_mea│
+                     │                   ││                   │                     │    Aggregates:    ││    Aggregates:    ││    Aggregates:    ││    Aggregates:    │                     │      n), 2.0)     │
+                     │    Projections:   ││    Projections:   │                     │    count_star()   ││    count_star()   ││    count_star()   ││    count_star()   │                     │                   │
+                     │    company_key    ││    company_key    │                     │      avg(#1)      ││      avg(#1)      ││      avg(#1)      ││      avg(#1)      │                     │                   │
+                     │      industry     ││   executive_key   │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │      country      ││   valuation_usd   │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │                   ││ company_age_years │                     │                   ││                   ││                   ││                   │                     │       0.00s       │
+                     │  Dynamic Filters: ││                   │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │     optional:     ││ Total Files Read: │                     │       0.00s       ││       0.01s       ││       0.01s       ││       0.00s       │                     │                   │
+                     │   company_key>=1  ││         1         │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │    AND optional:  ││                   │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │  company_key<=144 ││    Filename(s):   │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │                   ││     s3://gold     │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │ Total Files Read: ││/fact_valuation_gri│                     │                   ││                   ││                   ││                   │                     │                   │
+                     │         1         ││     t.parquet     │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │                   ││                   │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │    Filename(s):   ││                   │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │     s3://gold     ││                   │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │    /dim_company   ││                   │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │      .parquet     ││       0.00s       │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │                   ││                   │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │                   ││                   │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │                   ││                   │                     │                   ││                   ││                   ││                   │                     │                   │
+                     │      144 rows     ││      178 rows     │                     │       5 rows      ││      118 rows     ││      28 rows      ││       4 rows      │                     │      144 rows     │
+                     │       0.00s       ││      (0.00s)      │                     │      (0.00s)      ││      (0.01s)      ││      (0.01s)      ││      (0.00s)      │                     │      (0.00s)      │
+                     └───────────────────┘└───────────────────┘                     └─────────┬─────────┘└─────────┬─────────┘└─────────┬─────────┘└─────────┬─────────┘                     └─────────┬─────────┘
+                                                                                    ┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐                     ┌─────────┴─────────┐
+                                                                                    │     PROJECTION    ││     PROJECTION    ││     PROJECTION    ││     PROJECTION    │                     │   CROSS_PRODUCT   │
+                                                                                    │    ────────────   ││    ────────────   ││    ────────────   ││    ────────────   │                     │    ────────────   │
+                                                                                    │  university_tier  ││      industry     ││      country      ││ company_age_bucket│                     │                   │
+                                                                                    │ log_valuation_usd ││ log_valuation_usd ││ log_valuation_usd ││ log_valuation_usd │                     │                   │
+                                                                                    │                   ││                   ││                   ││                   │                     │       0.00s       ├──────────┐
+                                                                                    │                   ││                   ││                   ││                   │                     │                   │          │
+                                                                                    │                   ││                   ││                   ││                   │                     │                   │          │
+                                                                                    │      144 rows     ││      144 rows     ││      144 rows     ││      144 rows     │                     │      144 rows     │          │
+                                                                                    │       0.00s       ││       0.00s       ││       0.00s       ││       0.00s       │                     │      (0.00s)      │          │
+                                                                                    └─────────┬─────────┘└─────────┬─────────┘└─────────┬─────────┘└─────────┬─────────┘                     └─────────┬─────────┘          │
+                                                                                    ┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐                     ┌─────────┴─────────┐┌─────────┴─────────┐
+                                                                                    │     PROJECTION    ││     PROJECTION    ││     PROJECTION    ││     PROJECTION    │                     │      CTE_SCAN     ││      CTE_SCAN     │
+                                                                                    │    ────────────   ││    ────────────   ││    ────────────   ││    ────────────   │                     │    ────────────   ││    ────────────   │
+                                                                                    │         #1        ││         #1        ││         #1        ││         #1        │                     │    CTE Index: 1   ││    CTE Index: 2   │
+                                                                                    │         #2        ││         #3        ││         #4        ││         #5        │                     │                   ││                   │
+                                                                                    │                   ││                   ││                   ││                   │                     │                   ││                   │
+                                                                                    │                   ││                   ││                   ││                   │                     │                   ││                   │
+                                                                                    │                   ││                   ││                   ││                   │                     │                   ││                   │
+                                                                                    │      144 rows     ││      144 rows     ││      144 rows     ││      144 rows     │                     │       0.00s       ││       0.00s       │
+                                                                                    │       0.00s       ││       0.00s       ││       0.00s       ││       0.00s       │                     │      (0.00s)      ││      (0.00s)      │
+                                                                                    └─────────┬─────────┘└─────────┬─────────┘└─────────┬─────────┘└─────────┬─────────┘                     └───────────────────┘└───────────────────┘
+                                                                                    ┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐
+                                                                                    │       FILTER      ││       FILTER      ││       FILTER      ││       FILTER      │
+                                                                                    │    ────────────   ││    ────────────   ││    ────────────   ││    ────────────   │
+                                                                                    │  (university_tier ││  (industry IS NOT ││  (country IS NOT  ││(company_age_bucket│
+                                                                                    │    IS NOT NULL)   ││        NULL)      ││        NULL)      ││    IS NOT NULL)   │
+                                                                                    │                   ││                   ││                   ││                   │
+                                                                                    │                   ││                   ││                   ││                   │
+                                                                                    │                   ││                   ││                   ││                   │
+                                                                                    │      144 rows     ││      144 rows     ││      144 rows     ││      144 rows     │
+                                                                                    │       0.00s       ││       0.00s       ││       0.00s       ││       0.00s       │
+                                                                                    └─────────┬─────────┘└─────────┬─────────┘└─────────┬─────────┘└─────────┬─────────┘
+                                                                                    ┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐┌─────────┴─────────┐
+                                                                                    │      CTE_SCAN     ││      CTE_SCAN     ││      CTE_SCAN     ││      CTE_SCAN     │
+                                                                                    │    ────────────   ││    ────────────   ││    ────────────   ││    ────────────   │
+                                                                                    │    CTE Index: 1   ││    CTE Index: 1   ││    CTE Index: 1   ││    CTE Index: 1   │
+                                                                                    │                   ││                   ││                   ││                   │
+                                                                                    │                   ││                   ││                   ││                   │
+                                                                                    │                   ││                   ││                   ││                   │
+                                                                                    │      144 rows     ││      144 rows     ││      144 rows     ││      144 rows     │
+                                                                                    │       0.00s       ││       0.00s       ││       0.00s       ││       0.00s       │
+                                                                                    └───────────────────┘└───────────────────┘└───────────────────┘└───────────────────┘
+
+```

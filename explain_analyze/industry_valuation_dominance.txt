@@ -1,0 +1,258 @@
+# EXPLAIN ANALYZE: industry_valuation_dominance.sql
+# Generated at: 2026-06-28T11:50:21.718538+00:00
+# DuckDB S3 endpoint: 5.189.153.57:9000
+
+## Query
+
+```sql
+WITH company_level AS (
+    SELECT
+        f.company_key,
+        c.industry,
+        MAX(f.valuation_usd) AS valuation_usd,
+        AVG(f.experience_grit_index) AS experience_grit_index
+    FROM read_parquet('s3://gold/fact_valuation_grit.parquet') f
+    JOIN read_parquet('s3://gold/dim_company.parquet') c
+        ON f.company_key = c.company_key
+    WHERE c.industry IS NOT NULL
+      AND f.valuation_usd > 0
+    GROUP BY f.company_key, c.industry
+)
+
+SELECT
+    industry,
+    COUNT(*) AS total_companies,
+    ROUND(SUM(valuation_usd) / 1000000000, 2) AS total_valuation_billion_usd,
+    ROUND(AVG(valuation_usd) / 1000000000, 2) AS avg_valuation_billion_usd,
+    ROUND(MEDIAN(valuation_usd) / 1000000000, 2) AS median_valuation_billion_usd,
+    ROUND(AVG(experience_grit_index), 2) AS avg_grit_index
+FROM company_level
+GROUP BY industry
+HAVING COUNT(*) >= 2
+ORDER BY avg_valuation_billion_usd DESC
+LIMIT 10;
+```
+
+## EXPLAIN ANALYZE Output
+
+```text
+analyzed_plan
+
+┌─────────────────────────────────────┐
+│┌───────────────────────────────────┐│
+││    Query Profiling Information    ││
+│└───────────────────────────────────┘│
+└─────────────────────────────────────┘
+EXPLAIN ANALYZE WITH company_level AS (     SELECT         f.company_key,         c.industry,         MAX(f.valuation_usd) AS valuation_usd,         AVG(f.experience_grit_index) AS experience_grit_index     FROM read_parquet('s3://gold/fact_valuation_grit.parquet') f     JOIN read_parquet('s3://gold/dim_company.parquet') c         ON f.company_key = c.company_key     WHERE c.industry IS NOT NULL       AND f.valuation_usd > 0     GROUP BY f.company_key, c.industry )  SELECT     industry,     COUNT(*) AS total_companies,     ROUND(SUM(valuation_usd) / 1000000000, 2) AS total_valuation_billion_usd,     ROUND(AVG(valuation_usd) / 1000000000, 2) AS avg_valuation_billion_usd,     ROUND(MEDIAN(valuation_usd) / 1000000000, 2) AS median_valuation_billion_usd,     ROUND(AVG(experience_grit_index), 2) AS avg_grit_index FROM company_level GROUP BY industry HAVING COUNT(*) >= 2 ORDER BY avg_valuation_billion_usd DESC LIMIT 10; 
+┌─────────────────────────────────────┐
+│┌───────────────────────────────────┐│
+││         HTTPFS HTTP Stats         ││
+││                                   ││
+││            in: 0 bytes            ││
+││            out: 0 bytes           ││
+││              #HEAD: 2             ││
+││              #GET: 0              ││
+││              #PUT: 0              ││
+││              #POST: 0             ││
+││             #DELETE: 0            ││
+│└───────────────────────────────────┘│
+└─────────────────────────────────────┘
+┌────────────────────────────────────────────────┐
+│┌──────────────────────────────────────────────┐│
+││              Total Time: 0.933s              ││
+│└──────────────────────────────────────────────┘│
+└────────────────────────────────────────────────┘
+┌───────────────────────────┐
+│           QUERY           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│      EXPLAIN_ANALYZE      │
+│    ────────────────────   │
+│                           │
+│           0 rows          │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│           TOP_N           │
+│    ────────────────────   │
+│          Top: 10          │
+│                           │
+│         Order By:         │
+│  round((avg(company_level │
+│     .valuation_usd) /     │
+│    1000000000), 2) DESC   │
+│                           │
+│                           │
+│                           │
+│          10 rows          │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│         PROJECTION        │
+│    ────────────────────   │
+│          industry         │
+│      total_companies      │
+│total_valuation_billion_usd│
+│ avg_valuation_billion_usd │
+│median_valuation_billion_us│
+│             d             │
+│       avg_grit_index      │
+│                           │
+│                           │
+│                           │
+│          10 rows          │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│           FILTER          │
+│    ────────────────────   │
+│    (count_star() >= 2)    │
+│                           │
+│                           │
+│                           │
+│          10 rows          │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│       HASH_GROUP_BY       │
+│    ────────────────────   │
+│         Groups: #0        │
+│                           │
+│        Aggregates:        │
+│        count_star()       │
+│          sum(#1)          │
+│          avg(#2)          │
+│         median(#3)        │
+│          avg(#4)          │
+│                           │
+│                           │
+│                           │
+│          118 rows         │
+│           0.01s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│         PROJECTION        │
+│    ────────────────────   │
+│          industry         │
+│       valuation_usd       │
+│       valuation_usd       │
+│       valuation_usd       │
+│   experience_grit_index   │
+│                           │
+│                           │
+│                           │
+│          144 rows         │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│         PROJECTION        │
+│    ────────────────────   │
+│          industry         │
+│       valuation_usd       │
+│   experience_grit_index   │
+│                           │
+│                           │
+│                           │
+│          144 rows         │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│         PROJECTION        │
+│    ────────────────────   │
+│__internal_decompress_integ│
+│     ral_bigint(#0, 1)     │
+│             #1            │
+│             #2            │
+│             #3            │
+│                           │
+│                           │
+│                           │
+│          144 rows         │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│       HASH_GROUP_BY       │
+│    ────────────────────   │
+│          Groups:          │
+│             #0            │
+│             #1            │
+│                           │
+│        Aggregates:        │
+│          max(#2)          │
+│          avg(#3)          │
+│                           │
+│                           │
+│                           │
+│          144 rows         │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│         PROJECTION        │
+│    ────────────────────   │
+│        company_key        │
+│          industry         │
+│       valuation_usd       │
+│   experience_grit_index   │
+│                           │
+│                           │
+│                           │
+│          178 rows         │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│         PROJECTION        │
+│    ────────────────────   │
+│__internal_compress_integra│
+│     l_utinyint(#0, 1)     │
+│             #1            │
+│             #2            │
+│             #3            │
+│                           │
+│                           │
+│                           │
+│          178 rows         │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│         HASH_JOIN         │
+│    ────────────────────   │
+│      Join Type: INNER     │
+│                           │
+│        Conditions:        │
+│ company_key = company_key ├──────────────┐
+│                           │              │
+│                           │              │
+│                           │              │
+│          178 rows         │              │
+│           0.00s           │              │
+└─────────────┬─────────────┘              │
+┌─────────────┴─────────────┐┌─────────────┴─────────────┐
+│         TABLE_SCAN        ││         TABLE_SCAN        │
+│    ────────────────────   ││    ────────────────────   │
+│         Function:         ││         Function:         │
+│        READ_PARQUET       ││        READ_PARQUET       │
+│                           ││                           │
+│        Projections:       ││        Projections:       │
+│        company_key        ││        company_key        │
+│       valuation_usd       ││          industry         │
+│   experience_grit_index   ││                           │
+│                           ││    Total Files Read: 1    │
+│      Dynamic Filters:     ││                           │
+│  optional: company_key>=1 ││        Filename(s):       │
+│  AND optional: company_key││   s3://gold/dim_company   │
+│           <=144           ││          .parquet         │
+│                           ││                           │
+│    Total Files Read: 1    ││                           │
+│                           ││                           │
+│        Filename(s):       ││                           │
+│         s3://gold         ││           0.00s           │
+│    /fact_valuation_grit   ││                           │
+│          .parquet         ││                           │
+│                           ││                           │
+│                           ││                           │
+│                           ││                           │
+│          178 rows         ││          144 rows         │
+│           0.00s           ││          (0.00s)          │
+└───────────────────────────┘└───────────────────────────┘
+
+```

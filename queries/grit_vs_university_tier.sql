@@ -1,7 +1,3 @@
--- Analisis hubungan antara reputasi universitas dan grit index terhadap valuasi.
--- Query ini membandingkan valuasi perusahaan berdasarkan tier universitas eksekutif
--- dan kategori grit index perusahaan.
-
 WITH base_data AS (
     SELECT
         f.company_key,

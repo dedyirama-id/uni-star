@@ -1,0 +1,177 @@
+# EXPLAIN ANALYZE: valuation_by_university_tier.sql
+# Generated at: 2026-06-28T11:50:23.582057+00:00
+# DuckDB S3 endpoint: 5.189.153.57:9000
+
+## Query
+
+```sql
+SELECT
+    e.tier_flag,
+    COUNT(*) AS executive_company_pairs,
+    COUNT(DISTINCT f.company_key) AS total_companies,
+    COUNT(DISTINCT e.executive_name) AS total_executives,
+    ROUND(SUM(f.valuation_usd) / 1000000000, 2) AS total_valuation_billion_usd,
+    ROUND(AVG(f.valuation_usd) / 1000000000, 2) AS avg_valuation_billion_usd,
+    ROUND(MEDIAN(f.valuation_usd) / 1000000000, 2) AS median_valuation_billion_usd,
+    ROUND(AVG(LN(f.valuation_usd)), 4) AS avg_log_valuation
+FROM read_parquet('s3://gold/fact_valuation_grit.parquet') f
+JOIN read_parquet('s3://gold/dim_executive.parquet') e
+    ON f.executive_key = e.executive_key
+WHERE e.tier_flag IS NOT NULL
+  AND e.tier_flag <> 'Unknown Education'
+  AND f.valuation_usd > 0
+GROUP BY e.tier_flag
+ORDER BY avg_valuation_billion_usd DESC;
+```
+
+## EXPLAIN ANALYZE Output
+
+```text
+analyzed_plan
+
+┌─────────────────────────────────────┐
+│┌───────────────────────────────────┐│
+││    Query Profiling Information    ││
+│└───────────────────────────────────┘│
+└─────────────────────────────────────┘
+EXPLAIN ANALYZE SELECT     e.tier_flag,     COUNT(*) AS executive_company_pairs,     COUNT(DISTINCT f.company_key) AS total_companies,     COUNT(DISTINCT e.executive_name) AS total_executives,     ROUND(SUM(f.valuation_usd) / 1000000000, 2) AS total_valuation_billion_usd,     ROUND(AVG(f.valuation_usd) / 1000000000, 2) AS avg_valuation_billion_usd,     ROUND(MEDIAN(f.valuation_usd) / 1000000000, 2) AS median_valuation_billion_usd,     ROUND(AVG(LN(f.valuation_usd)), 4) AS avg_log_valuation FROM read_parquet('s3://gold/fact_valuation_grit.parquet') f JOIN read_parquet('s3://gold/dim_executive.parquet') e     ON f.executive_key = e.executive_key WHERE e.tier_flag IS NOT NULL   AND e.tier_flag <> 'Unknown Education'   AND f.valuation_usd > 0 GROUP BY e.tier_flag ORDER BY avg_valuation_billion_usd DESC; 
+┌─────────────────────────────────────┐
+│┌───────────────────────────────────┐│
+││         HTTPFS HTTP Stats         ││
+││                                   ││
+││            in: 0 bytes            ││
+││            out: 0 bytes           ││
+││              #HEAD: 2             ││
+││              #GET: 0              ││
+││              #PUT: 0              ││
+││              #POST: 0             ││
+││             #DELETE: 0            ││
+│└───────────────────────────────────┘│
+└─────────────────────────────────────┘
+┌────────────────────────────────────────────────┐
+│┌──────────────────────────────────────────────┐│
+││              Total Time: 0.914s              ││
+│└──────────────────────────────────────────────┘│
+└────────────────────────────────────────────────┘
+┌───────────────────────────┐
+│           QUERY           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│      EXPLAIN_ANALYZE      │
+│    ────────────────────   │
+│                           │
+│           0 rows          │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│          ORDER_BY         │
+│    ────────────────────   │
+│ round((avg(f.valuation_usd│
+│  ) / 1000000000), 2) DESC │
+│                           │
+│                           │
+│                           │
+│           4 rows          │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│         PROJECTION        │
+│    ────────────────────   │
+│         tier_flag         │
+│  executive_company_pairs  │
+│      total_companies      │
+│      total_executives     │
+│total_valuation_billion_usd│
+│ avg_valuation_billion_usd │
+│median_valuation_billion_us│
+│             d             │
+│     avg_log_valuation     │
+│                           │
+│                           │
+│                           │
+│           4 rows          │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│       HASH_GROUP_BY       │
+│    ────────────────────   │
+│         Groups: #0        │
+│                           │
+│        Aggregates:        │
+│        count_star()       │
+│     count(DISTINCT #1)    │
+│     count(DISTINCT #2)    │
+│          sum(#3)          │
+│          avg(#4)          │
+│         median(#5)        │
+│          avg(#6)          │
+│                           │
+│                           │
+│                           │
+│           4 rows          │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│         PROJECTION        │
+│    ────────────────────   │
+│         tier_flag         │
+│        company_key        │
+│       executive_name      │
+│       valuation_usd       │
+│       valuation_usd       │
+│       valuation_usd       │
+│     ln(valuation_usd)     │
+│                           │
+│                           │
+│                           │
+│           9 rows          │
+│           0.00s           │
+└─────────────┬─────────────┘
+┌─────────────┴─────────────┐
+│         HASH_JOIN         │
+│    ────────────────────   │
+│      Join Type: INNER     │
+│                           │
+│        Conditions:        │
+│      executive_key =      │
+│        executive_key      ├──────────────┐
+│                           │              │
+│                           │              │
+│                           │              │
+│           9 rows          │              │
+│           0.00s           │              │
+└─────────────┬─────────────┘              │
+┌─────────────┴─────────────┐┌─────────────┴─────────────┐
+│         TABLE_SCAN        ││         TABLE_SCAN        │
+│    ────────────────────   ││    ────────────────────   │
+│         Function:         ││         Function:         │
+│        READ_PARQUET       ││        READ_PARQUET       │
+│                           ││                           │
+│        Projections:       ││        Projections:       │
+│       executive_key       ││       executive_key       │
+│         tier_flag         ││       valuation_usd       │
+│       executive_name      ││        company_key        │
+│                           ││                           │
+│          Filters:         ││    Total Files Read: 1    │
+│    tier_flag!='Unknown    ││                           │
+│  Education' AND (tier_flag││        Filename(s):       │
+│        IS NOT NULL)       ││         s3://gold         │
+│                           ││    /fact_valuation_grit   │
+│      Dynamic Filters:     ││          .parquet         │
+│ optional: executive_key>=1││                           │
+│        AND optional:      ││                           │
+│     executive_key<=177    ││                           │
+│                           ││                           │
+│    Total Files Read: 1    ││           0.00s           │
+│                           ││                           │
+│        Filename(s):       ││                           │
+│  s3://gold/dim_executive  ││                           │
+│          .parquet         ││                           │
+│                           ││                           │
+│                           ││                           │
+│                           ││                           │
+│           8 rows          ││          178 rows         │
+│           0.00s           ││          (0.00s)          │
+└───────────────────────────┘└───────────────────────────┘
+
+```

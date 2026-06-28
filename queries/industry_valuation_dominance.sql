@@ -1,7 +1,3 @@
--- Apakah industri lebih dominan dalam menjelaskan valuasi?
--- Query ini mencari industri dengan rata-rata dan total valuasi terbesar.
--- Hasilnya dipakai sebagai pembanding terhadap pengaruh tier universitas.
-
 WITH company_level AS (
     SELECT
         f.company_key,

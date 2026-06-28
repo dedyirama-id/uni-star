@@ -1,9 +1,3 @@
--- Apakah ranking QS yang lebih tinggi berkaitan dengan valuasi lebih tinggi?
--- Catatan interpretasi:
--- QS rank yang lebih kecil berarti universitas lebih tinggi.
--- Korelasi negatif antara qs_world_ranking dan log valuation berarti ranking lebih baik
--- cenderung berkaitan dengan valuasi lebih tinggi.
-
 SELECT
     COUNT(*) AS ranked_observations,
     COUNT(DISTINCT f.company_key) AS ranked_companies,

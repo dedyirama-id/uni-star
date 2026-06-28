@@ -1,7 +1,3 @@
--- Apakah usia perusahaan dan grit index lebih menjelaskan valuasi?
--- Query ini mengelompokkan perusahaan berdasarkan usia dan membandingkan valuasi
--- serta grit index. Ini menjawab apakah faktor non-universitas ikut dominan.
-
 WITH company_level AS (
     SELECT
         company_key,

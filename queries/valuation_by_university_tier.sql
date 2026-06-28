@@ -1,7 +1,3 @@
--- Apakah tier universitas eksekutif berkaitan dengan valuasi perusahaan?
--- Query ini membandingkan jumlah perusahaan, total valuasi, rata-rata valuasi,
--- median valuasi, dan rata-rata log valuasi pada setiap tier universitas.
-
 SELECT
     e.tier_flag,
     COUNT(*) AS executive_company_pairs,
